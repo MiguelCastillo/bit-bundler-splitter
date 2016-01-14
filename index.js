@@ -60,8 +60,6 @@ function splitBundle(fileName, options) {
     var splitExclude = splitModules.map(function(mod) { return mod.id; });
     var splitContext = context.configure({ modules: splitModules });
 
-    console.log(splitExclude);
-
     return Promise
       .resolve(bundler.bundle(splitContext, { browserPack: { standalone: false } }))
       .then(function(bundle) {
