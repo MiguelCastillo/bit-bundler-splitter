@@ -1,2 +1,2 @@
 # bit-bundler-splitter
-bit-bundler plugin for splitting bundles up
+> bit-bundler plugin for splitting bundles up
