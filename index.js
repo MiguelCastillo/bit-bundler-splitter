@@ -53,7 +53,7 @@ function splitBundle(fileName, options) {
 
   return function splitBundleDelegate(bundler, context) {
     if (!hasMatches(context, matcher)) {
-      return;
+      return context;
     }
 
     var splitModules = getModules(context, matcher);
