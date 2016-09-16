@@ -23,7 +23,6 @@ This example shows a basic `bit-bundler` setup with `bit-bundler-splitter` split
 module.exports = function(grunt) {
   require('load-grunt-tasks')(grunt);
 
-  var jsBundler = require("bit-bundler-browserpack");
   var splitBundle = require("bit-bundler-splitter");
   var jsPlugin = require("bit-loader-js");
 
@@ -38,11 +37,11 @@ module.exports = function(grunt) {
         loader: {
           plugins: jsPlugin()
         },
-        bundler: jsBundler({
+        bundler: {
           plugins: [
             splitBundle("dist/vendor.js")
           ]
-        })
+        }
       }
     }
   });
