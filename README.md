@@ -1,7 +1,7 @@
 # bit-bundler-splitter
 > bit-bundler plugin for splitting bundles up
 
-This plugin helps slice and dice your application bundle into smaller bundles which we refer to as bundle parts. The more common use case is to split out the vendor (3rd party) modules into a separate bundle. This is to maximize browsers' caching capabilities; generally speaking vendor bundles do not change frequencetly and browsers can cache them rather efficiently. Vendor bundles also tend to be larger than your more frequently changing application bundle, and this generally translates to a reduction in traffic.
+This plugin helps slice and dice your application bundle into smaller bundles which we refer to as bundle shards. The more common use case is to split out the vendor (3rd party) modules into a separate bundle. This is to maximize browsers' caching capabilities; generally speaking vendor bundles do not change frequencetly and browsers can cache them rather efficiently. Vendor bundles also tend to be larger than your more frequently changing application bundles, which generally translates to a reduction in traffic.
 
 `bit-bundler-splitter` uses [roolio](https://github.com/MiguelCastillo/roolio) to provide a flexible way to configure matching rules that control how bundles are split. More on this in the examples section.
 
@@ -23,7 +23,6 @@ This example shows a basic `bit-bundler` setup with `bit-bundler-splitter` split
 module.exports = function(grunt) {
   require('load-grunt-tasks')(grunt);
 
-  var jsBundler = require("bit-bundler-browserpack");
   var splitBundle = require("bit-bundler-splitter");
   var jsPlugin = require("bit-loader-js");
 
@@ -38,11 +37,11 @@ module.exports = function(grunt) {
         loader: {
           plugins: jsPlugin()
         },
-        bundler: jsBundler({
+        bundler: {
           plugins: [
             splitBundle("dist/vendor.js")
           ]
-        })
+        }
       }
     }
   });

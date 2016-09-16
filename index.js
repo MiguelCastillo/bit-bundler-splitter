@@ -63,7 +63,7 @@ function splitBundle(fileName, options) {
     return Promise
       .resolve(bundler.bundle(splitContext, { browserPack: { standalone: false } }))
       .then(function(bundle) {
-        return context.addExclude(splitExclude).addPart(fileName, bundle);
+        return context.addExclude(splitExclude).setShard(fileName, bundle);
       });
   }
 }
