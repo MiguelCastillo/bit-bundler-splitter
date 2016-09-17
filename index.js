@@ -65,7 +65,7 @@ function splitBundle(fileName, options) {
       .then(function(bundle) {
         return context.addExclude(splitExclude).setShard(fileName, bundle);
       });
-  }
+  };
 }
 
 module.exports = splitBundle;
