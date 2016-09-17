@@ -4,7 +4,7 @@
   "description": "bit-bundler plugin for splitting bundles up",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "eslint *.js"
   },
   "repository": {
     "type": "git",
@@ -21,5 +21,8 @@
   "homepage": "https://github.com/MiguelCastillo/bit-bundler-splitter",
   "dependencies": {
     "roolio": "^0.1.1"
+  },
+  "devDependencies": {
+    "eslint": "^3.5.0"
   }
 }
