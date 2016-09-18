@@ -1,4 +1,5 @@
 var Rule = require("roolio");
+var utils = require("belty");
 
 function createMatcher(matches) {
   matches = matches || { name: /^\w+/ };
@@ -56,12 +57,13 @@ function splitBundle(fileName, options) {
       return context;
     }
 
+    var browserPackOptions = utils.merge({ standalone: false }, options.options);
     var splitModules = getModules(context, matcher);
     var splitExclude = splitModules.map(function(mod) { return mod.id; });
     var splitContext = context.configure({ modules: splitModules });
 
     return Promise
-      .resolve(bundler.bundle(splitContext, { browserPack: { standalone: false } }))
+      .resolve(bundler.bundle(splitContext, { browserPack: browserPackOptions }))
       .then(function(bundle) {
         return context.addExclude(splitExclude).setShard(fileName, bundle);
       });
