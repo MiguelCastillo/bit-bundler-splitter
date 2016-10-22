@@ -11,43 +11,38 @@ This plugin helps slice and dice your application bundle into smaller bundles wh
 $ npm install --save-dev bit-bundler-splitter
 ```
 
-### Recipes
-
-#### grunt recipe
+### example
 
 This example shows a basic `bit-bundler` setup with `bit-bundler-splitter` splitting out vendor bundles.
 
 > `bit-bundler-splitter` splits out vendor modules by default when no matching rules are defined.
 
 ``` javascript
-module.exports = function(grunt) {
-  require('load-grunt-tasks')(grunt);
+var Bitbundler = require("bit-bundler");
+var jsPlugin = require("bit-loader-js");
+var babelPlugin = require("bit-loader-babel");
+var splitBundle = require("bit-bundler-splitter");
 
-  var splitBundle = require("bit-bundler-splitter");
-  var jsPlugin = require("bit-loader-js");
+var bitbundler = new Bitbundler({
+  loader: {
+    plugins: [
+      jsPlugin(),
+      babelPlugin()
+    ]
+  },
+  bundler: {
+    plugins: [
+      splitBundle("dest/splitter-vendor.js", { match: { path: [/\/bower_components\//, /\/node_modules\//] } }),
+      splitBundle("dest/splitter-renderer.js", { match: { path: /src\/renderer/ } })
+    ]
+  }
+});
 
-  grunt.initConfig({
-    pkg: pkg,
-    bitbundler: {
-      build: {
-        files: [{
-          src: "src/main.js",
-          dest: "dist/app.js"
-        }],
-        loader: {
-          plugins: jsPlugin()
-        },
-        bundler: {
-          plugins: [
-            splitBundle("dist/vendor.js")
-          ]
-        }
-      }
-    }
+bitbundler
+  .bundle({
+    src: "src/main.js",
+    dest: "dest/splitter-main.js"
   });
-
-  grunt.registerTask("build", ["bitbundler:build"]);
-};
 ```
 
 ### API
