@@ -52,7 +52,7 @@ function splitBundle(fileName, options) {
   options = options || {};
   var matcher = createMatcher(options.match);
 
-  return function splitBundleDelegate(bundler, context) {
+  function splitBundleDelegate(bundler, context) {
     if (!hasMatches(context, matcher)) {
       return context;
     }
@@ -67,6 +67,10 @@ function splitBundle(fileName, options) {
       .then(function(bundle) {
         return context.addExclude(splitExclude).setShard(fileName, bundle);
       });
+  };
+
+  return {
+    prebundle: splitBundleDelegate
   };
 }
 
