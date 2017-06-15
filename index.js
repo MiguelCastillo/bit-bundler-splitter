@@ -48,7 +48,7 @@ function getModules(context, matcher) {
   return vendor;
 }
 
-function splitBundle(fileName, options) {
+function splitBundle(name, options) {
   options = options || {};
   var matcher = createMatcher(options.match);
 
@@ -65,7 +65,7 @@ function splitBundle(fileName, options) {
     return Promise
       .resolve(bundler.bundle(splitContext, { browserPack: browserPackOptions }))
       .then(function(bundle) {
-        return context.addExclude(splitExclude).setShard(fileName, bundle);
+        return context.addExclude(splitExclude).setShard(name, bundle, options.dest);
       });
   };
 
