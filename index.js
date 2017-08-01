@@ -25,30 +25,34 @@ function hasMatches(context, matcher) {
 }
 
 function getModules(context, matcher) {
+  var result = [], processed = {}, i = 0, currentModule;
   var stack = context.modules.slice(0);
-  var vendor = [], processed = {}, i = 0, mod;
 
   while (stack.length !== i) {
-    mod = stack[i++];
-    if (processed.hasOwnProperty(mod.id)) {
-      continue;
-    }
+    currentModule = stack[i++];
 
-    mod = context.cache[mod.id];
-    processed[mod.id] = mod;
+    if (!processed.hasOwnProperty(currentModule.id)) {
+      currentModule = context.cache[currentModule.id];
+      processed[currentModule.id] = currentModule;
 
-    if (matcher(mod)) {
-      vendor.push(mod);
-    }
-    else {
-      stack.push.apply(stack, mod.deps);
+      if (matcher(currentModule)) {
+        result.push(currentModule);
+      }
+      else {
+        stack.push.apply(stack, currentModule.deps);
+      }
     }
   }
 
-  return vendor;
+  return result;
 }
 
 function splitBundle(name, options) {
+  if (name && name.constructor === Object) {
+    options = name;
+    name = options.name || options.dest;
+  }
+
   options = options || {};
   var matcher = createMatcher(options.match);
 
