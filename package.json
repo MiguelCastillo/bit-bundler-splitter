@@ -20,10 +20,10 @@
   },
   "homepage": "https://github.com/MiguelCastillo/bit-bundler-splitter",
   "dependencies": {
-    "belty": "^5.0.3",
+    "belty": "^5.1.0",
     "roolio": "^0.1.1"
   },
   "devDependencies": {
-    "eslint": "^4.0.0"
+    "eslint": "^4.3.0"
   }
 }
