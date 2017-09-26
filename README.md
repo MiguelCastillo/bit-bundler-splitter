@@ -1,7 +1,7 @@
 # bit-bundler-splitter
 > bit-bundler plugin for splitting bundles up
 
-This plugin helps slice and dice your application bundle into smaller bundles which we refer to as bundle shards. The more common use case is to split out the vendor (3rd party) modules into a separate bundle. This is to maximize browsers' caching capabilities; generally speaking vendor bundles do not change frequently and browsers can cache them rather efficiently. Vendor bundles also tend to be larger than your more frequently changing application bundles, which generally translates to a reduction in traffic.
+This plugin helps slice and dice your application bundle into smaller bundles which we refer to as bundle shards. The more common use case is to split out the vendor (3rd party) modules into a separate bundle. This is to maximize browsers' caching capabilities; generally speaking vendor bundles do not change frequently and browsers can cache them rather efficiently. Vendor bundles also tend to be larger than your more frequently changing application bundles, which generally translates to a reduction in traffic when properly cached by the browser.
 
 `bit-bundler-splitter` uses [roolio](https://github.com/MiguelCastillo/roolio) to provide a flexible way to configure matching rules that control how bundles are split. More on this in the examples section.
 
@@ -19,46 +19,45 @@ This example shows a basic `bit-bundler` setup with `bit-bundler-splitter` split
 
 ``` javascript
 var Bitbundler = require("bit-bundler");
-var splitBundle = require("bit-bundler-splitter");
 
-var bitbundler = new Bitbundler({
+Bitbundler.bundle({
+  src: "src/main.js",
+  dest: "dest/splitter-main.js"
+}, {
   loader: [
     "bit-loader-js",
     "bit-loader-babel"
   ],
   bundler: [
-    splitBundle("dest/splitter-vendor.js", { match: { path: [/\/bower_components\//, /\/node_modules\//] } }),
-    splitBundle("dest/splitter-renderer.js", { match: { path: /src\/renderer/ } })
+    ["bit-bundler-splitter", [
+      { name: "vendor", dest: "dest/vendor.js", match: { path: [/\/bower_components\//, /\/node_modules\//] } },
+      { name: "renderer", dest: "dest/renderer.js", match: { path: /src\/renderer/ } } ]
+    ]
   ]
-});
-
-bitbundler.bundle({
-  src: "src/main.js",
-  dest: "dest/splitter-main.js"
 });
 ```
 
 ### API
 
-#### splitBundle( name: string, options: object )
+#### splitBundle( options: object )
 
-`bit-bundler-splitter` exports a function that we generally call `splitBundle`.  The first parameter is the name of the bundle. If there is no dest specified in the options, then the name is used as the file path for writing the bundle. The second parameter are options to define matching rules, which is how we configure how bundles are split. Options can also contain `dest` which is where the bundle is written to. `dest` can be a file name or a stream.
+`bit-bundler-splitter` exports a function that we generally call `splitBundle`.
 
-- @param {string} name - name of the bundle. When there is no `dest` option specified, then the name is used as the file path to write bundles to.
 - @param {object} options - Configuration options explained below.
+  - `match`, matching rules which is how we configure how bundles are split.
+  - `dest`, which is where the bundle is written to; `dest` can be a file path or a stream.
+  - `name`, which is the name of the bundle. Other plugins can access these shards by name if need be.
 
-The primary options that `splitBundle` take are for configuring matching rules to determine which modules go in which bundle. Matching rules can match anything that is in the module object, which includes `path`, `filename`, and `source`; matching rules essentially match the shape of modules. These matching rules can be `regex`, `string`, or a `function`.  Please see [roolio matchers](https://github.com/MiguelCastillo/roolio#matchers) for more details on defining rules.
-
-You can also configure the destination for the bundle, which can be a string (file path) or a writable stream.
+More on matching rules:
+Matching rules can match anything that is in the module object, which includes `path`, `filename`, and `source`; matching rules essentially match the shape of modules. These matching rules can be `regex`, `string`, or a `function`.  Please see [roolio matchers](https://github.com/MiguelCastillo/roolio#matchers) for more details on defining rules.
 
 
 ### Examples
-Let's take a look at a setup that matches any module name that only has word characters. e.g. "jquery". This is a really simple heuristic for identifying vendor modules, and it is also the default behavior for `bit-bundler-splitter` when no options are provided.
 
-> By default, `bit-bundler-splitter` will split out vendor modules when no options are provided.
+Let's take a look at a setup that matches any module name that only has alpha numeric characters. e.g. "jquery".
 
 ``` javascript
-splitBundle("dest/vendor.js", {
+splitBundle({
   match: {
     name: /^\w+/
   }
@@ -68,7 +67,7 @@ splitBundle("dest/vendor.js", {
 This is an example for matching a particular module name:
 
 ``` javascript
-splitBundle("dest/three.js", {
+splitBundle({
   match: {
     name: "three"
   }
@@ -78,17 +77,17 @@ splitBundle("dest/three.js", {
 You can further specify a regex to match particular paths.
 
 ``` javascript
-splitBundle("dest/common.js", {
+splitBundle({
   match: {
     path: /common/
   }
 });
 ```
 
-You can also specify multiple matching rules.
+You can also specify multiple matching rules. In this case only module with name "jquery" that have "views" in its file path will match this.
 
 ``` javascript
-splitBundle("dest/vendor.js", {
+splitBundle({
   match: {
     name: "jquery",
     path: /views/
@@ -96,10 +95,11 @@ splitBundle("dest/vendor.js", {
 });
 ```
 
-Now, let's specify a bundle name and a destination where the bundle is going to be written to.
+Now, let's specify a bundle name and a destination where the bundle is going to be written to and a name.
 
 ``` javascript
-splitBundle("vendor", {
+splitBundle({
+  name: "vendor",
   dest: "dest/vendor.js",
   match: {
     name: "jquery",
@@ -111,7 +111,8 @@ splitBundle("vendor", {
 Destination can alternatively be a stream.
 
 ``` javascript
-splitBundle("vendor", {
+splitBundle({
+  name: "vendor",
   dest: process.stdout,
   match: {
     name: "jquery",
@@ -120,7 +121,11 @@ splitBundle("vendor", {
 });
 ```
 
+And you can define multiple bundle splits...
 
-### License
-
-MIT
+``` javascript
+splitBundle([
+  { name: "vendor", dest: "dest/vendor.js", match: { path: [/\/bower_components\//, /\/node_modules\//] },
+  { name: "renderer", dest: "dest/renderer.js", match: { path: /src\/renderer/ } }
+]);
+```
