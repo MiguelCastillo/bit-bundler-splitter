@@ -30,9 +30,8 @@ function getModules(context, matcher) {
   while (stack.length !== i) {
     currentModule = stack[i++];
 
-    if (!processed.hasOwnProperty(currentModule.id)) {
-      currentModule = context.cache[currentModule.id];
-      processed[currentModule.id] = currentModule;
+    if (!processed[currentModule.id]) {
+      currentModule = processed[currentModule.id] = context.cache[currentModule.id];
 
       if (matcher(currentModule)) {
         result.push(currentModule);
@@ -46,11 +45,28 @@ function getModules(context, matcher) {
   return result;
 }
 
-function splitBundle(options) {
+function flattenModules(context, root) {
+  var result = [], stack = root.slice(0), i = 0;
+  var currentModule, processed = {};
+
+  while(stack.length !== i) {
+    currentModule = stack[i++];
+
+    if (!processed[currentModule.id]) {
+      currentModule = processed[currentModule.id] = context.cache[currentModule.id];
+      result.push(currentModule);
+      stack.push.apply(stack, currentModule.deps);
+    }
+  }
+
+  return result;
+}
+
+function createBundlerSplitter(options) {
   var splitters = []
     .concat(options)
     .map(buildOptions)
-    .map(makeSplitter);
+    .map(buildSplitter);
 
   function buildOptions(options) {
     options = options || {};
@@ -58,34 +74,45 @@ function splitBundle(options) {
     return options;
   }
 
-  function makeSplitter(options) {
+  function buildSplitter(options) {
     var matcher = createMatcher(options.match);
 
-    return function splitter(bundler, context) {
+    return function splitter(context) {
       if (!hasMatches(context, matcher)) {
-        return context;
+        return;
       }
 
-      var browserPackOptions = Object.assign({ standalone: false }, options.options);
-      var splitModules = getModules(context, matcher);
-      var splitExclude = splitModules.map((mod) => mod.id);
-      var splitContext = context.configure({ modules: splitModules });
+      var modules = getModules(context, matcher);
+      var byId = flattenModules(context, modules).reduce((byId, mod) => (byId[mod.id] = mod, byId), {});
 
-      return Promise
-        .resolve(bundler.bundle(splitContext, { browserPack: browserPackOptions }))
-        .then((bundle) => context.addExclude(splitExclude).setShard(options.name, bundle, options.dest));
+      return {
+        options: options,
+        byId: byId,
+        modules: modules
+      };
     };
   }
 
-  function splitBundleDelegate(bundler, context) {
+  function createBundle(context, config) {
+    var splitContext = context.configure({ modules: config.modules });
+    var browserPackOptions = Object.assign({ standalone: false }, config.options);
+
+    return Promise
+      .resolve(bundler.bundle(splitContext, { browserPack: browserPackOptions }))
+      .then((bundle) => context.addExclude(Object.keys(config.byId)).setShard(config.name, bundle, config.dest));
+  }
+
+  function bundleSplitterRun(bundler, context) {
     return splitters
-      .map(splitter => (context) => splitter(bundler, context))
+      .map(splitter => splitter(context))
+      .filter(Boolean)
+      .map(config => createBundle(context, config))
       .reduce((deferred, current) => deferred.then(current), Promise.resolve(context));
   }
 
   return {
-    prebundle: splitBundleDelegate
+    prebundle: bundleSplitterRun
   };
 }
 
-module.exports = splitBundle;
+module.exports = createBundlerSplitter;
