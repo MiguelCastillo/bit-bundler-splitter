@@ -1,4 +1,6 @@
 # bit-bundler-splitter
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/MiguelCastillo/bit-bundler-splitter.svg)](https://greenkeeper.io/)
 > bit-bundler plugin for splitting bundles up
 
 This plugin helps slice and dice your application bundle into smaller bundles which we refer to as bundle shards. The more common use case is to split out the vendor (3rd party) modules into a separate bundle. This is to maximize browsers' caching capabilities; generally speaking vendor bundles do not change frequently and browsers can cache them rather efficiently. Vendor bundles also tend to be larger than your more frequently changing application bundles, which generally translates to a reduction in traffic when properly cached by the browser.
