@@ -86,7 +86,7 @@ function createBundle(bundler, context, shard) {
   var rootModules = context.modules.map(mod => mod.id);
   var shardContext = context.configure({ modules: shard.modules }).addExclude(rootModules);
   var browserPackOptions = Object.assign({ standalone: false }, shard.options);
-  var moduleIds = flattenModules(context, shard.modules).map((mod) => mod.id).filter(id => !rootModules.includes(id));
+  var moduleIds = flattenModules(context, shard.modules).map((mod) => mod.id).filter(id => rootModules.indexOf(id) === -1);
 
   return Promise
     .resolve(bundler.bundle(shardContext, { browserPack: browserPackOptions }))
