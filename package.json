@@ -1,6 +1,6 @@
 {
   "name": "bit-bundler-splitter",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "bit-bundler plugin for splitting bundles up",
   "main": "index.js",
   "scripts": {
