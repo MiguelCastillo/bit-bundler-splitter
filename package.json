@@ -14,7 +14,8 @@
     "url": "https://github.com/MiguelCastillo/bit-bundler-splitter.git"
   },
   "keywords": [
-    "bit-bundler"
+    "bit-bundler",
+    "bit-bundler-plugin"
   ],
   "author": "Miguel Castillo <manchagnu@gmail.com>",
   "license": "MIT",
