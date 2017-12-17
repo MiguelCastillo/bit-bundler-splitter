@@ -1,79 +1,14 @@
-var Rule = require("roolio");
+"use strict";
 
-function createMatcher(matches) {
-  matches = matches || { name: /^\w+/ };
+const createShardTreeBuilder = require("./src/shard/treeBuilder");
+const createShardRepository = require("./src/shard/repository");
+const Splitter = require("./src/splitter");
+const path = require("path");
+const loaderJS = require("fs").readFileSync(path.join(__dirname, "loader.js"));
 
-  var rules = Object
-    .keys(matches)
-    .reduce((rules, matchName) => {
-      rules[matchName] = (new Rule()).addMatcher(matches[matchName]);
-      return rules;
-    }, {});
-
-  return function matcher(mod) {
-    return !rules || Object.keys(rules).some(function(rule) {
-      return rules[rule].match(mod[rule]);
-    });
-  };
-}
-
-function hasMatches(context, matcher) {
-  return Object.keys(context.cache)
-    .map(key => context.cache[key])
-    .some(matcher);
-}
-
-function getModules(context, matcher) {
-  var result = [], processed = {}, i = 0, currentModule;
-  var stack = context.modules.slice(0);
-
-  while (stack.length !== i) {
-    currentModule = stack[i++];
-
-    if (!processed[currentModule.id]) {
-      currentModule = processed[currentModule.id] = context.cache[currentModule.id];
-
-      if (matcher(currentModule)) {
-        result.push(currentModule);
-      }
-      else {
-        stack.push.apply(stack, currentModule.deps);
-      }
-    }
-  }
-
-  return result;
-}
-
-function flattenModules(context, root) {
-  var result = [], stack = root.slice(0), i = 0;
-  var currentModule, processed = {};
-
-  while(stack.length !== i) {
-    currentModule = stack[i++];
-
-    if (!processed[currentModule.id]) {
-      currentModule = processed[currentModule.id] = context.cache[currentModule.id];
-      result.push(currentModule);
-      stack.push.apply(stack, currentModule.deps);
-    }
-  }
-
-  return result;
-}
 
 function createSplitter(options) {
-  var matcher = createMatcher(options.match);
-
-  return function splitter(context) {
-    if (!hasMatches(context, matcher)) {
-      return;
-    }
-
-    return Object.assign({}, options, {
-      modules: getModules(context, matcher)
-    });
-  };
+  return new Splitter(options);
 }
 
 function normalizeOptions(options) {
@@ -82,15 +17,71 @@ function normalizeOptions(options) {
   return options;
 }
 
-function createBundle(bundler, context, shard) {
-  var rootModules = context.modules.map(mod => mod.id);
-  var shardContext = context.configure({ modules: shard.modules }).addExclude(rootModules);
-  var browserPackOptions = Object.assign({ standalone: false }, shard.options);
-  var moduleIds = flattenModules(context, shard.modules).map((mod) => mod.id).filter(id => rootModules.indexOf(id) === -1);
+function splitContext(bundler, context, splitters) {
+  const mainBundle = context.getBundle("main");
+  const moduleCache = context.getCache();
+  const shardRepository = createShardRepository();
+  const shardTreeBuilder = createShardTreeBuilder(moduleCache, splitters, shardRepository);
+  const shardTree = shardTreeBuilder.buildTree("main", mainBundle.entries);
+  const shardDependencyOrder = buildDependencyOrder(shardRepository, [shardTree.name]);
 
-  return Promise
-    .resolve(bundler.bundle(shardContext, { browserPack: browserPackOptions }))
-    .then((bundledShard) => context.addExclude(moduleIds).setShard(shard.name, bundledShard, shard.dest));
+  //
+  // .reduce((accumulator, items) => accumulator.concat(items), [])
+  //   .reduce(incrementCounter(item => item.id), {});
+  //
+  // commonModules = Object
+  //   .keys(commonModules)
+  //   .filter(key => commonModules[key] !== 1)
+  //   .reduce((accumulator, key) => (accumulator[key] = moduleCache[key], accumulator), {});
+  //
+
+  const updatedContext = shardRepository
+    .getShardByName(shardDependencyOrder)
+    .map(shard => shard.toBundle())
+    .filter(Boolean)
+    .reduce((context, bundle) => context.setBundle(bundle), context);
+
+  return {
+    context: updatedContext,
+    shardDependencyOrder: shardDependencyOrder
+  };
+}
+
+function buildAutoLoader(splitData) {
+  const context = splitData.context;
+  const shardDependencyOrder = splitData.shardDependencyOrder.map(dep => `"${dep}"`);
+  const mainBundle = context.getBundle("main");
+  const entryPath = mainBundle.dest ? path.join(path.dirname(mainBundle.dest), "entry.js") : false;
+  const loadEntries = loaderJS + `;loadJS([${shardDependencyOrder}])`;
+
+  return context.setBundle({ name: "__loader", content: loadEntries, dest: entryPath });
+}
+
+function buildDependencyOrder(shardRepository, shardList) {
+  var processed = {}, shardDependencyOrder = [];
+  var shardName;
+
+  for (var childrenIndex = 0; shardList.length > childrenIndex; childrenIndex++) {
+    shardList = shardList.concat([shardList[childrenIndex]].reduce((accumulator, parent) => {
+      var children = shardRepository.getShardByName(parent).children;
+
+      // Print
+      // console.log(parent);
+      // children.forEach((child) => console.log(" -", child));
+
+      return accumulator.concat(children);
+    }, []));
+  }
+
+  for (var index = shardList.length; index; index--) {
+    shardName = shardList[index - 1];
+    if (!processed[shardName]) {
+      processed[shardName] = true;
+      shardDependencyOrder.push(shardName);
+    }
+  }
+
+  return shardDependencyOrder;
 }
 
 function createBundlerSplitter(options) {
@@ -100,15 +91,30 @@ function createBundlerSplitter(options) {
     .map(createSplitter);
 
   function bundleSplitterRun(bundler, context) {
-    return splitters
-      .map(split => split(context))
-      .filter(Boolean)
-      .reduce((deferred, shard) => deferred.then((context) => createBundle(bundler, context, shard)), Promise.resolve(context));
+    return buildAutoLoader(splitContext(bundler, context, splitters));
   }
 
   return {
     prebundle: bundleSplitterRun
   };
 }
+
+/*
+function incrementCounter(keyMapper) {
+  return function(accumulator, item) {
+    var key = keyMapper(item);
+    if (!accumulator[key]) {
+      accumulator[key] = 0;
+    }
+
+    accumulator[key]++;
+    return accumulator;
+  };
+}
+
+function toMap(items, keyMapper) {
+  return items.reduce((accumulator, item) => (accumulator[keyMapper(item)] = item, accumulator), {});
+}
+*/
 
 module.exports = createBundlerSplitter;

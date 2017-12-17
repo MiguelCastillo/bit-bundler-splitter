@@ -4,7 +4,7 @@
   "description": "bit-bundler plugin for splitting bundles up",
   "main": "index.js",
   "scripts": {
-    "test": "eslint *.js && mocha --compilers js:@babel/register"
+    "test": "eslint *.js && mocha --require @babel/register"
   },
   "engines": {
     "node": ">=4"
@@ -32,6 +32,7 @@
     "@babel/register": "^7.0.0-beta.32",
     "babel-register": "^6.26.0",
     "bit-bundler": "^8.0.2",
+    "bit-loader-builtins": "^2.0.0",    
     "chai": "^4.1.2",
     "eslint": "^4.7.2",
     "mocha": "^4.0.1"

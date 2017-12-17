@@ -15,10 +15,14 @@ describe("BitBundler test suite", function() {
   describe("When spitting bundles", function() {
     beforeEach(function() {
       createBundler({
+        loader: ["bit-loader-builtins"],
         bundler: [
           bundleSplitter([
-            { name: "test/dist/Y.js", dest: false, match: { fileName: "Y.js" }},
-            { name: "test/dist/Z.js", dest: false, match: { fileName: "z.js" }}
+            // { name: "test/dist/X.js", dest: false, match: { fileName: "X.js" }},
+            { name: "test/dist/W.js", match: { fileName: "w.js" }},
+            { name: "test/dist/Y.js", match: { fileName: "Y.js" }},
+            { name: "test/dist/Z.js", match: { fileName: "z.js" }},
+            { name: "test/dist/vendor.js", match: { path: /\/node_modules\// } }
           ])
         ]
       });
@@ -32,7 +36,7 @@ describe("BitBundler test suite", function() {
       var result;
 
       beforeEach(function() {
-        return bitbundler.bundle("test/sample/X.js").then(function(ctx) {
+        return bitbundler.bundle("test/sample/a.js").then(function(ctx) {
           result = ctx;
         });
       });
