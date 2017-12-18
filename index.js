@@ -36,7 +36,7 @@ function splitContext(bundler, context, splitters) {
 
   return {
     context: updatedContext,
-    shardDependencyOrder: shardDependencyOrder
+    shardDependencyOrder: shardDependencyOrder.map(shardName => updatedContext.getBundle(shardName).dest).filter(dest => typeof dest === "string")
   };
 }
 
@@ -44,9 +44,8 @@ function buildAutoLoader(splitData) {
   const context = splitData.context;
   const mainBundle = context.getBundle("main");
   const entryPath = mainBundle.dest ? path.join(path.dirname(mainBundle.dest), "loader.js") : null;
-  const shardDependencyOrder = splitData.shardDependencyOrder.map(dep => `"${dep}"`);
+  const shardDependencyOrder = splitData.shardDependencyOrder.filter(Boolean).map(dep => `"${path.relative(path.dirname(entryPath), dep)}"`);
   const loadEntries = loaderJS + `;loadJS([${shardDependencyOrder}])`;
-
   return context.setBundle({ name: "loader", content: loadEntries, dest: entryPath });
 }
 
