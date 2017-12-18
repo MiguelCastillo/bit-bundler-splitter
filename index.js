@@ -23,30 +23,35 @@ function splitContext(bundler, context, splitters) {
   const shardRepository = createShardRepository();
   const shardTreeBuilder = createShardTreeBuilder(moduleCache, splitters, shardRepository);
   const shardStats = shardTreeBuilder.buildTree("main", mainBundle.entries);
-  const shardDependencyOrder = buildDependencyOrder(shardRepository, ["main"]);
+  const shardOrder = buildDependencyOrder(shardRepository, ["main"]);
 
   // Move things around in the tree based on load order.
-  normalizeCommonModules(shardRepository, shardDependencyOrder, shardStats);
+  normalizeCommonModules(shardRepository, shardOrder, shardStats);
 
   const updatedContext = shardRepository
-    .getShard(shardDependencyOrder)
+    .getShard(shardOrder)
     .map(shard => shard.toBundle())
     .filter(Boolean)
     .reduce((context, bundle) => context.setBundle(bundle), context);
 
   return {
     context: updatedContext,
-    shardDependencyOrder: shardDependencyOrder.map(shardName => updatedContext.getBundle(shardName).dest).filter(dest => typeof dest === "string")
+    shardOrder: shardOrder
   };
 }
 
 function buildAutoLoader(splitData) {
   const context = splitData.context;
   const mainBundle = context.getBundle("main");
-  const entryPath = mainBundle.dest ? path.join(path.dirname(mainBundle.dest), "loader.js") : null;
-  const shardDependencyOrder = splitData.shardDependencyOrder.filter(Boolean).map(dep => `"${path.relative(path.dirname(entryPath), dep)}"`);
-  const loadEntries = loaderJS + `;loadJS([${shardDependencyOrder}])`;
-  return context.setBundle({ name: "loader", content: loadEntries, dest: entryPath });
+  const loaderPath = mainBundle.dest && typeof mainBundle.dest === "string" ? path.join(path.dirname(mainBundle.dest), "loader.js") : null;
+
+  const shardPaths = splitData.shardOrder
+    .map(shardName => context.getBundle(shardName).dest)
+    .filter(dest => dest && typeof dest === "string")
+    .map(shardPath => `"${path.relative(path.dirname(loaderPath), shardPath)}"`);
+
+  const loadEntries = loaderJS + `;loadJS([${shardPaths}]);`;
+  return context.setBundle({ name: "loader", content: loadEntries, dest: loaderPath });
 }
 
 function buildDependencyOrder(shardRepository, shardList) {
