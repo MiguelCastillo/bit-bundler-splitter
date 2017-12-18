@@ -9,7 +9,7 @@ class Other extends RenderIt {
 
   render() {
     super.render();
-    log2console(`render:other`);
+    log2console('render:other');
     log2console('test recursive', mainRecursive);
   }
 }

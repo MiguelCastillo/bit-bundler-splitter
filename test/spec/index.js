@@ -122,8 +122,16 @@ describe("BitBundler test suite", function() {
           .then((ctx) => result = ctx);
       });
 
+      it("then splitter created a shard for 'main'", function() {
+        expect(result.shards).to.have.property("main");
+      });
+
+      it("then splitter created a shard for 'main' with the correct bundle result", function() {
+        expect(trimResult(result.shards["main"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){import Other from './other';import log2console from 'log2console';class Main {  constructor() {    this._other = new Other();  }  render() {    log2console('render:main');    this._other.render();  }}(new Main()).render();},{"./other":2,"log2console":3}]},{},[1])`);
+      });
+
       it("then the result has one module", function() {
-        expect(result.shards["main"].modules).to.have.lengthOf(0);
+        expect(result.shards["main"].modules).to.have.lengthOf(1);
       });
 
       it("then splitter created a shard for 'other'", function() {
@@ -131,7 +139,7 @@ describe("BitBundler test suite", function() {
       });
 
       it("then splitter created a shard for 'other' with the correct bundle result", function() {
-        expect(trimResult(result.shards["other"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({7:[function(require,module,exports){import RenderIt from './renderer/render-it';import mainRecursive from './main';import log2console from 'log2console';class Other extends RenderIt {  constructor() {    super();  }  render() {    super.render();    log2console(\`render:other\`);    log2console('test recursive', mainRecursive);  }}export default Other;},{"./main":8,"./renderer/render-it":6,"log2console":1}],8:[function(require,module,exports){import Other from './other';import log2console from 'log2console';class Main {  constructor() {    this._other = new Other();  }  render() {    log2console(\`render:main\`);    this._other.render();  }}(new Main()).render();},{"./other":7,"log2console":1}]},{},[7])`);
+        expect(trimResult(result.shards["other"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({2:[function(require,module,exports){import RenderIt from './renderer/render-it';import mainRecursive from './main';import log2console from 'log2console';class Other extends RenderIt {  constructor() {    super();  }  render() {    super.render();    log2console('render:other');    log2console('test recursive', mainRecursive);  }}export default Other;},{"./main":1,"./renderer/render-it":8,"log2console":3}]},{},[2])`);
       });
 
       it("then splitter created a shard for 'renderer'", function() {
@@ -139,7 +147,7 @@ describe("BitBundler test suite", function() {
       });
 
       it("then splitter created a shard for 'renderer' with the correct bundle result", function() {
-        expect(trimResult(result.shards["renderer"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({6:[function(require,module,exports){import log2console from 'log2console';class RenderIt {  constructor() {  }  render() {    log2console('base render-it!');  }}export default RenderIt;},{"log2console":1}]},{},[6])`);
+        expect(trimResult(result.shards["renderer"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({8:[function(require,module,exports){import log2console from 'log2console';class RenderIt {  constructor() {  }  render() {    log2console('base render-it!');  }}export default RenderIt;},{"log2console":3}]},{},[8])`);
       });
     });
   });

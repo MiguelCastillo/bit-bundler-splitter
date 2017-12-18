@@ -7,7 +7,7 @@ class Main {
   }
 
   render() {
-    log2console(`render:main`);
+    log2console('render:main');
     this._other.render();
   }
 }
