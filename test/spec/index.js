@@ -6,15 +6,13 @@ import loggers from "bit-bundler/loggers";
 import bundleSplitter from "../../index";
 
 describe("BitBundler test suite", function() {
-  var createBundler, bitbundler;
+  const createBundler = (config) => new BitBundler(Object.assign({ log: { stream: loggers.through() } }, config || {}));
 
-  beforeEach(function() {
-    createBundler = (config) => bitbundler = new BitBundler(Object.assign({ log: { stream: loggers.through() } }, config || {}));
-  });
+  describe("When spitting bundles with shared modules", function() {
+    var bitbundler;
 
-  describe("When spitting bundles", function() {
-    beforeEach(function() {
-      createBundler({
+    before(function() {
+      bitbundler = createBundler({
         loader: ["bit-loader-builtins"],
         bundler: [
           bundleSplitter([
@@ -33,7 +31,7 @@ describe("BitBundler test suite", function() {
       expect(bitbundler).to.be.an.instanceof(BitBundler);
     });
 
-    describe("and bundling a module with a couple of dependencies", function() {
+    describe("and bundling two entry modules", function() {
       var result;
 
       before(function() {
@@ -42,7 +40,7 @@ describe("BitBundler test suite", function() {
         });
       });
 
-      it("then the result has one root module", function() {
+      it("then the result has two modules", function() {
         expect(result.shards["main"].modules).to.have.lengthOf(2);
       });
 
@@ -88,6 +86,60 @@ describe("BitBundler test suite", function() {
 
       it("then splitter created a shard for 'test/dist/basic/deep/Z.js' with the correct bundle result", function() {
         expect(trimResult(result.shards["test/dist/basic/deep/Z.js"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({4:[function(require,module,exports){/*eslint no-console: ["off"]*/module.exports = function() {  return {    roast: "this",    potatoes: function() {      console.log("Say potatoes");    }  };};},{}]},{},[4])`);
+      });
+    });
+  });
+
+  describe("When creating a bundle where the root module has a circular reference", function() {
+    var bitbundler;
+
+    before(function() {
+      bitbundler = createBundler({
+        loader: ["bit-loader-builtins"],
+        bundler: [
+          bundleSplitter([
+            { name: "vendor", dest: "test/dist/circular-reference/deep/vendor.js", match: { path: /\/node_modules\// } },
+            { name: "renderer", dest: "test/dist/circular-reference/renderer.js", match: { path: /\/renderer\// } },
+            { name: "other", dest: "test/dist/circular-reference/other.js", match: { fileName: "other.js" } }
+          ])
+        ]
+      });
+    });
+
+    it("then the bundler is an instance of Bundler", function() {
+      expect(bitbundler).to.be.an.instanceof(BitBundler);
+    });
+
+    describe("and bundling two entry modules", function() {
+      var result;
+
+      before(function() {
+        return bitbundler
+          .bundle({
+            src: ["test/sample/circular-reference/main.js"],
+            dest: "test/dist/circular-reference/main.js"
+          })
+          .then((ctx) => result = ctx);
+      });
+
+      it("then the result has one module", function() {
+        expect(result.shards["main"].modules).to.have.lengthOf(0);
+      });
+
+      it("then splitter created a shard for 'other'", function() {
+        expect(result.shards).to.have.property("other");
+      });
+
+      it("then splitter created a shard for 'other' with the correct bundle result", function() {
+        expect(trimResult(result.shards["other"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({7:[function(require,module,exports){import RenderIt from './renderer/render-it';import mainRecursive from './main';import log2console from 'log2console';class Other extends RenderIt {  constructor() {    super();  }  render() {    super.render();    log2console(\`render:other\`);    log2console('test recursive', mainRecursive);  }}export default Other;},{"./main":8,"./renderer/render-it":6,"log2console":1}],8:[function(require,module,exports){import Other from './other';import log2console from 'log2console';class Main {  constructor() {    this._other = new Other();  }  render() {    log2console(\`render:main\`);    this._other.render();  }}(new Main()).render();},{"./other":7,"log2console":1}]},{},[7])`);
+      });
+
+      it("then splitter created a shard for 'renderer'", function() {
+        expect(result.shards).to.have.property("renderer");
+      });
+
+      it("then splitter created a shard for 'renderer' with the correct bundle result", function() {
+        expect(trimResult(result.shards["renderer"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({6:[function(require,module,exports){import log2console from 'log2console';class RenderIt {  constructor() {  }  render() {    log2console('base render-it!');  }}export default RenderIt;},{"log2console":1}]},{},[6])`);
       });
     });
   });

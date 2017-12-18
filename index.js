@@ -23,7 +23,7 @@ function splitContext(bundler, context, splitters) {
   const shardRepository = createShardRepository();
   const shardTreeBuilder = createShardTreeBuilder(moduleCache, splitters, shardRepository);
   const shardStats = shardTreeBuilder.buildTree("main", mainBundle.entries);
-  const shardLoadOrder = buildShardLoadOrder(shardRepository, "main");
+  var shardLoadOrder = buildShardLoadOrder(shardRepository, "main");
 
   // Move things around in the tree based on load order.
   normalizeCommonModules(shardRepository, shardLoadOrder, shardStats);
@@ -33,6 +33,11 @@ function splitContext(bundler, context, splitters) {
     .map(shard => shard.toBundle())
     .filter(Boolean)
     .reduce((context, bundle) => context.setBundle(bundle), context);
+
+  // Once the shards are all normalized and the bundles created,
+  // make sure to remove from the loader any bundles that no
+  // longer have any modules in it.
+  shardLoadOrder = shardLoadOrder.filter(shardName => shardRepository.getShard(shardName).modules.length);
 
   return {
     context: updatedContext,
@@ -75,9 +80,12 @@ function buildShardLoadOrder(shardRepository, shardNames) {
 }
 
 function normalizeCommonModules(shardRepository, shardList, moduleStats) {
+  // const mainShard = shardRepository.getShard("main");
+
   Object
     .keys(moduleStats)
     .filter(moduleId => Object.keys(moduleStats[moduleId].shards).length > 1)
+    // .filter(moduleId => mainShard.entries.indexOf(moduleId) === -1)
     .forEach(moduleId => {
       var shards = shardList.filter(shardId => moduleStats[moduleId].shards[shardId]);
       shardRepository.setShard(shardRepository.getShard(shards.shift()).addModules(moduleId));

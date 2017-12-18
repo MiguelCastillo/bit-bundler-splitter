@@ -9,6 +9,7 @@
   "author": "Miguel Castillo <manchagnu@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "bit-loader-builtins": "^2.0.0"
+    "bit-loader-builtins": "^2.0.0",
+    "log2console": "^1.0.3"
   }
 }
