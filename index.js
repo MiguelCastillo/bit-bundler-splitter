@@ -18,7 +18,7 @@ function normalizeOptions(options) {
 }
 
 function splitContext(bundler, context, splitters) {
-  const mainBundle = context.getBundle("main");
+  const mainBundle = context.getBundles("main");
   const moduleCache = context.getCache();
   const shardRepository = createShardRepository();
   const shardTreeBuilder = createShardTreeBuilder(moduleCache, splitters, shardRepository);
@@ -47,11 +47,11 @@ function splitContext(bundler, context, splitters) {
 
 function buildShardLoader(splitData) {
   const context = splitData.context;
-  const mainBundle = context.getBundle("main");
+  const mainBundle = context.getBundles("main");
   const loaderPath = mainBundle.dest && typeof mainBundle.dest === "string" ? path.join(path.dirname(mainBundle.dest), "loader.js") : null;
 
   const shardPaths = splitData.shardLoadOrder
-    .map(shardName => context.getBundle(shardName).dest)
+    .map(shardName => context.getBundles(shardName).dest)
     .filter(dest => dest && typeof dest === "string")
     .map(shardPath => `"${path.relative(path.dirname(loaderPath), shardPath)}"`);
 
