@@ -1,15 +1,15 @@
 module.exports = function nodeBuilder(moduleCache, splitters, shardRepository) {
-  var processedModules = {};
+  var moduleStats = {};
 
   function createShardForModule(mod, stats) {
     var splitter = splitters.find(splitter => splitter.isMatch(mod, stats));
 
     if (splitter) {
-      if (!shardRepository.getShardByName(splitter.name)) {
+      if (!shardRepository.getShard(splitter.name)) {
         shardRepository.setShard({ name: splitter.name, splitter: splitter });
       }
 
-      return shardRepository.getShardByName(splitter.name);
+      return shardRepository.getShard(splitter.name);
     }
   }
 
@@ -38,7 +38,7 @@ module.exports = function nodeBuilder(moduleCache, splitters, shardRepository) {
         return true;
       }
       else {
-        parents = parents.reduce((accumulator, parent) => accumulator.concat(shardRepository.getShardByName(parent).parents), []);
+        parents = parents.reduce((accumulator, parent) => accumulator.concat(shardRepository.getShard(parent).parents), []);
       }
     }
   }
@@ -48,48 +48,39 @@ module.exports = function nodeBuilder(moduleCache, splitters, shardRepository) {
   }  
 
   function buildNode(shardName) {
-    var currentNode = shardRepository.getShardByName(shardName);
+    var currentNode = shardRepository.getShard(shardName);
     var moduleIndex = 0, moduleIdList = currentNode.entries.slice(0);     
     var currentModule, newNode, nodeUpdate;
 
     for (moduleIndex = 0; moduleIdList.length !== moduleIndex; moduleIndex++) {
       currentModule = moduleCache[moduleIdList[moduleIndex]];
 
-      if (currentModule) {
-        nodeUpdate = appendChildNode(currentNode, createShardForModule(currentModule, processedModules[currentModule.id]));
+      if (!currentModule) {
+        moduleIdList[moduleIndex] = null;
+        continue;
+      }
 
-        if (nodeUpdate) {
-          currentNode = nodeUpdate.parent;
-          newNode = nodeUpdate.child;
-        }
+      nodeUpdate = appendChildNode(currentNode, createShardForModule(currentModule, moduleStats[currentModule.id]));
 
-        if (processedModules[currentModule.id]) {
-          moduleIdList[moduleIndex] = null;
-        }
-        else if (nodesNotEqual(currentNode, newNode)) {
-          moduleIdList[moduleIndex] = null;
-          shardRepository.setShard(newNode.addEntries(currentModule.id));
-
-          if (processedModules[currentModule.id]) {
-            Object
-              .keys(processedModules[currentModule.id].shards)
-              .filter(shardName => currentNode.name !== shardName)
-              .forEach(shardName => {
-                var shard = shardRepository.getShardByName(shardName);
-                shardRepository.setShard(shard.setModules(shard.modules.filter(id => id !== currentModule.id)));
-              });
-          }
-        }
-        else {
-          processedModules[currentModule.id] = {
-            shards: { [currentNode.name]: true }
-          };
-
-          moduleIdList = moduleIdList.concat(currentModule.deps.map(dep => dep.id));
-        }
+      if (nodeUpdate) {
+        currentNode = nodeUpdate.parent;
+        newNode = nodeUpdate.child;
       }
       else {
+        newNode = null;
+      }
+
+      if (moduleStats[currentModule.id]) {
         moduleIdList[moduleIndex] = null;
+        moduleStats[currentModule.id].shards[currentNode.name] = true;
+      }
+      else if (nodesNotEqual(currentNode, newNode)) {
+        moduleIdList[moduleIndex] = null;
+        shardRepository.setShard(newNode.addEntries(currentModule.id));
+      }
+      else {
+        moduleIdList = moduleIdList.concat(currentModule.deps.map(dep => dep.id));
+        moduleStats[currentModule.id] = { shards: { [currentNode.name]: true } };
       }
     }
 
@@ -97,6 +88,7 @@ module.exports = function nodeBuilder(moduleCache, splitters, shardRepository) {
   }
 
   return {
-    buildNode: buildNode
+    buildNode: buildNode,
+    getStats: () => moduleStats
   };
 };

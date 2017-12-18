@@ -27,7 +27,7 @@ class Shard {
   }
 
   addModules(modules) {
-    return this.configure({ modules: this.modules.concat(modules) });
+    return this.configure({ modules: dedup(this.modules.concat(modules)) });
   }
 
   setEntries(entries) {
@@ -35,7 +35,7 @@ class Shard {
   }
 
   addEntries(entries) {
-    return this.configure({ entries: this.entries.concat(entries) });
+    return this.configure({ entries: dedup(this.entries.concat(entries)) });
   }
 
   setParents(parents) {
@@ -43,7 +43,7 @@ class Shard {
   }
 
   addParents(parents) {
-    return this.configure({ parents: this.parents.concat(parents) });
+    return this.configure({ parents: dedup(this.parents.concat(parents)) });
   }
 
   setChildren(children) {
@@ -51,7 +51,7 @@ class Shard {
   }
 
   addChildren(children) {
-    return this.configure({ children: this.children.concat(children) });
+    return this.configure({ children: dedup(this.children.concat(children)) });
   }
 
   setSplitter(splitter) {
@@ -71,6 +71,14 @@ class Shard {
 
     return bundle;
   }
+}
+
+function dedup(list) {
+  return (
+    Object.keys(
+      list.reduce((accumulator, item) => (accumulator[item] = true, accumulator), {})
+    )
+  );
 }
 
 module.exports = Shard;

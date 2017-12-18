@@ -3,7 +3,7 @@ const Shard = require("./shard");
 module.exports = function createRepository() {
   var shards = {};
 
-  function getShardByName(names) {
+  function getShard(names) {
     return Array.isArray(names) ?
       names.map(name => shards[name]) :
       shards[names];
@@ -28,7 +28,7 @@ module.exports = function createRepository() {
   }
 
   return {
-    getShardByName: getShardByName,
+    getShard: getShard,
     createShard: createShard,
     setShard: setShard
   };

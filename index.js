@@ -22,21 +22,14 @@ function splitContext(bundler, context, splitters) {
   const moduleCache = context.getCache();
   const shardRepository = createShardRepository();
   const shardTreeBuilder = createShardTreeBuilder(moduleCache, splitters, shardRepository);
-  const shardTree = shardTreeBuilder.buildTree("main", mainBundle.entries);
-  const shardDependencyOrder = buildDependencyOrder(shardRepository, [shardTree.name]);
+  const shardStats = shardTreeBuilder.buildTree("main", mainBundle.entries);
+  const shardDependencyOrder = buildDependencyOrder(shardRepository, ["main"]);
 
-  //
-  // .reduce((accumulator, items) => accumulator.concat(items), [])
-  //   .reduce(incrementCounter(item => item.id), {});
-  //
-  // commonModules = Object
-  //   .keys(commonModules)
-  //   .filter(key => commonModules[key] !== 1)
-  //   .reduce((accumulator, key) => (accumulator[key] = moduleCache[key], accumulator), {});
-  //
+  // Move things around in the tree based on load order.
+  normalizeCommonModules(shardRepository, shardDependencyOrder, shardStats);
 
   const updatedContext = shardRepository
-    .getShardByName(shardDependencyOrder)
+    .getShard(shardDependencyOrder)
     .map(shard => shard.toBundle())
     .filter(Boolean)
     .reduce((context, bundle) => context.setBundle(bundle), context);
@@ -49,12 +42,12 @@ function splitContext(bundler, context, splitters) {
 
 function buildAutoLoader(splitData) {
   const context = splitData.context;
-  const shardDependencyOrder = splitData.shardDependencyOrder.map(dep => `"${dep}"`);
   const mainBundle = context.getBundle("main");
-  const entryPath = mainBundle.dest ? path.join(path.dirname(mainBundle.dest), "entry.js") : false;
+  const entryPath = mainBundle.dest ? path.join(path.dirname(mainBundle.dest), "loader.js") : null;
+  const shardDependencyOrder = splitData.shardDependencyOrder.map(dep => `"${dep}"`);
   const loadEntries = loaderJS + `;loadJS([${shardDependencyOrder}])`;
 
-  return context.setBundle({ name: "__loader", content: loadEntries, dest: entryPath });
+  return context.setBundle({ name: "loader", content: loadEntries, dest: entryPath });
 }
 
 function buildDependencyOrder(shardRepository, shardList) {
@@ -63,7 +56,7 @@ function buildDependencyOrder(shardRepository, shardList) {
 
   for (var childrenIndex = 0; shardList.length > childrenIndex; childrenIndex++) {
     shardList = shardList.concat([shardList[childrenIndex]].reduce((accumulator, parent) => {
-      var children = shardRepository.getShardByName(parent).children;
+      var children = shardRepository.getShard(parent).children;
 
       // Print
       // console.log(parent);
@@ -84,6 +77,21 @@ function buildDependencyOrder(shardRepository, shardList) {
   return shardDependencyOrder;
 }
 
+function normalizeCommonModules(shardRepository, shardList, moduleStats) {
+  Object
+    .keys(moduleStats)
+    .filter(moduleId => Object.keys(moduleStats[moduleId].shards).length > 1)
+    .forEach(moduleId => {
+      var shards = shardList.filter(shardId => moduleStats[moduleId].shards[shardId]);
+      shardRepository.setShard(shardRepository.getShard(shards.shift()).addModules(moduleId));
+
+      shards.forEach(shardId => {
+        const shard = shardRepository.getShard(shardId);
+        shardRepository.setShard(shard.setModules(shard.modules.filter(id => id !== moduleId)));
+      });
+    });
+}
+
 function createBundlerSplitter(options) {
   var splitters = []
     .concat(options)
@@ -98,23 +106,5 @@ function createBundlerSplitter(options) {
     prebundle: bundleSplitterRun
   };
 }
-
-/*
-function incrementCounter(keyMapper) {
-  return function(accumulator, item) {
-    var key = keyMapper(item);
-    if (!accumulator[key]) {
-      accumulator[key] = 0;
-    }
-
-    accumulator[key]++;
-    return accumulator;
-  };
-}
-
-function toMap(items, keyMapper) {
-  return items.reduce((accumulator, item) => (accumulator[keyMapper(item)] = item, accumulator), {});
-}
-*/
 
 module.exports = createBundlerSplitter;
