@@ -32,7 +32,8 @@
     "@babel/register": "^7.0.0-beta.35",
     "babel-register": "^6.26.0",
     "bit-bundler": "^9.0.0",
-    "bit-loader-builtins": "^2.0.0",    
+    "bit-loader-builtins": "^2.0.0",
+    "log2console": "^1.0.3",    
     "chai": "^4.1.2",
     "eslint": "^4.13.1",
     "mocha": "^4.0.1"
