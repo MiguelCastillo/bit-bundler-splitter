@@ -1,11 +1,12 @@
 /*eslint no-console: ["off"]*/
-var z = require("./z");
-var X = require("./X");
+const path = require("path");
+const z = require("./z");
+const X = require("./X");
 
 function Y() {
   console.log(X, typeof X);
   console.log("Say Y");
-  z.potatoes();
+  z().potatoes();
 }
 
 module.exports = Y;
