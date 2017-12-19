@@ -1,6 +1,6 @@
 {
   "name": "bit-bundler-splitter",
-  "version": "4.1.3",
+  "version": "5.0.0",
   "description": "bit-bundler plugin for splitting bundles up",
   "main": "index.js",
   "scripts": {
@@ -33,7 +33,7 @@
     "babel-register": "^6.26.0",
     "bit-bundler": "^9.0.0",
     "bit-loader-builtins": "^2.0.0",
-    "log2console": "^1.0.3",    
+    "log2console": "^1.0.3",
     "chai": "^4.1.2",
     "eslint": "^4.13.1",
     "mocha": "^4.0.1"
