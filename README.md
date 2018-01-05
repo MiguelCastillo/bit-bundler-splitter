@@ -62,6 +62,18 @@ Matching rules can match anything that is in the module object, which includes `
 
 ### Examples
 
+
+There is code for an example you can take a look [here](https://github.com/MiguelCastillo/bit-bundler-splitter/tree/master/examples/renderer).  You can run it with:
+
+```
+$ npm install
+$ npm run build
+$ cat dist/vendor.js dist/renderer.js dist/main.js | node
+```
+
+
+Below are other examples to help illustrate how you can use matching rules.
+
 Let's take a look at a setup that matches any module name that only has alpha numeric characters. e.g. "jquery".
 
 ``` javascript
