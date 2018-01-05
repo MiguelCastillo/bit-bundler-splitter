@@ -5,6 +5,10 @@
 
 This plugin helps slice and dice your application bundle into smaller bundles which we refer to as bundle shards. The more common use case is to split out the vendor (3rd party) modules into a separate bundle. This is to maximize browsers' caching capabilities; generally speaking vendor bundles do not change frequently and browsers can cache them rather efficiently. Vendor bundles also tend to be larger than your more frequently changing application bundles, which generally translates to a reduction in traffic when properly cached by the browser.
 
+Bundle splitting works by defining matching rules for the modules you want in a separate bundle. Any module that matches the rules becomes a bundle or added to already existing bundles. You can match modules with regexes on the filepath, or any other piece of information available on them. The modules that are split into its own bundle actually bring its entire dependency tree, unless of course a dependency matches a rule in which case the dependency becomes its own bundle. What bundle splitter ends up with is a tree of bundles with the corresponding modules that matched splitting rules at each node. And all corresponding module dependencies are tucked into each of the corresponding bundles.
+
+Once all bundles are created, a special bundle called `loader` is created and saved as `loader.js`. This bundle is special in that it will contain the necessary information to automatically load all the bundles in the correct order in the browser. You can use this file in your index HTML to automatically load all the bundles in the correct order. Or you can choose to load the bundles however way you want.
+
 `bit-bundler-splitter` uses [roolio](https://github.com/MiguelCastillo/roolio) to provide a flexible way to configure matching rules that control how bundles are split. More on this in the examples section.
 
 ### Install
@@ -15,7 +19,9 @@ $ npm install --save-dev bit-bundler-splitter
 
 ### example
 
-This example shows a basic `bit-bundler` setup with `bit-bundler-splitter` splitting out vendor bundles by matching the path of module. If the module path contains `bower_components` or `node_modules` then it is considered a 3rd party library and it gets push to the vendor bundle. We are also splitting out modules whose path contains `src/renderer` and writing that out as a separate bundle.
+This example shows a basic `bit-bundler` setup with `bit-bundler-splitter` splitting out vendor bundles by matching module paths. If the module path contains `bower_components` or `node_modules` then it is considered a 3rd party library and it gets push to the vendor bundle. We are also splitting out modules whose path contains `src/renderer` and writing that out as a separate bundle.
+
+You can see this example at [https://bundler.bitjs.io/Examples.html#how-about-bundle-splitting](bit-bundler's page).
 
 > `bit-bundler-splitter` splits out vendor modules by default when no matching rules are defined.
 
@@ -41,9 +47,9 @@ Bitbundler.bundle({
 
 ### API
 
-#### splitBundle( options: object )
+#### splitBundle( config: object )
 
-`bit-bundler-splitter` exports a function that we generally call `splitBundle`.
+`bit-bundler-splitter` exports a function that takes the following configuration.
 
 - @param {object} options - Configuration options explained below.
   - `match`, matching rules which is how we configure how bundles are split.
@@ -55,6 +61,18 @@ Matching rules can match anything that is in the module object, which includes `
 
 
 ### Examples
+
+
+There is code for an example you can take a look [here](https://github.com/MiguelCastillo/bit-bundler-splitter/tree/master/examples/renderer).  You can run it with:
+
+```
+$ npm install
+$ npm run build
+$ cat dist/vendor.js dist/renderer.js dist/main.js | node
+```
+
+
+Below are other examples to help illustrate how you can use matching rules.
 
 Let's take a look at a setup that matches any module name that only has alpha numeric characters. e.g. "jquery".
 
