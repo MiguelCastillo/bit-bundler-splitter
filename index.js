@@ -6,7 +6,6 @@ const Splitter = require("./src/splitter");
 const path = require("path");
 const loaderJS = require("fs").readFileSync(path.join(__dirname, "loader.js"));
 
-
 function createSplitter(options) {
   return new Splitter(options);
 }
@@ -53,9 +52,9 @@ function buildShardLoader(splitData) {
   const shardPaths = splitData.shardLoadOrder
     .map(shardName => context.getBundles(shardName).dest)
     .filter(dest => dest && typeof dest === "string")
-    .map(shardPath => `"${path.relative(path.dirname(loaderPath), shardPath)}"`);
+    .map(shardPath => `"./${path.relative(path.dirname(loaderPath), shardPath)}"`);
 
-  const loadEntries = loaderJS + `;loadJS([${shardPaths}]);`;
+  const loadEntries = `(function(){\n${loaderJS}\n;load([${shardPaths}]);\n})();`;
   return context.setBundle({ name: "loader", content: loadEntries, dest: loaderPath });
 }
 
