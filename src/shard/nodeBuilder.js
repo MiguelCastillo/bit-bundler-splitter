@@ -71,8 +71,13 @@ module.exports = function nodeBuilder(moduleCache, splitters, shardRepository) {
       }
 
       if (moduleStats[currentModule.id]) {
-        moduleIdList[moduleIndex] = null;
-        moduleStats[currentModule.id].shards[currentNode.name] = true;
+        if (moduleStats[currentModule.id].shards[currentNode.name]) {
+          moduleIdList[moduleIndex] = null;
+        }
+        else {
+          moduleStats[currentModule.id].shards[currentNode.name] = true;
+          moduleIdList = moduleIdList.concat(currentModule.deps.map(dep => dep.id));
+        }
       }
       else if (nodesNotEqual(currentNode, newNode)) {
         moduleIdList[moduleIndex] = null;

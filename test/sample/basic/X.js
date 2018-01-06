@@ -1,5 +1,6 @@
 /*eslint no-console: ["off"]*/
 var Y = require("./Y");
+require("./aa");
 
 function X() {
   console.log("Say X");
