@@ -17,11 +17,11 @@ describe("BitBundler test suite", function() {
         bundler: [
           bundleSplitter([
             // { name: "test/dist/X.js", match: { fileName: "X.js" }},
-            { name: "test/dist/basic/c.js", match: { filename: "c.js" }},
-            { name: "test/dist/basic/W.js", match: { filename: "w.js" }},
-            { name: "test/dist/basic/Y.js", match: { filename: "Y.js" }},
+            { name: "test/dist/basic/c.js", match: /c.js$/ },
+            { name: "test/dist/basic/W.js", match: /w.js$/ },
+            { name: "test/dist/basic/Y.js", match: "basic/Y.js" },
             { name: "test/dist/basic/deep/Z.js", match: { filename: "z.js" }},
-            { name: "test/dist/basic/deep/vendor.js", match: { path: /\/node_modules\// } }
+            { name: "test/dist/basic/deep/vendor.js", match: ["/node_modules/"] }
           ])
         ]
       });
