@@ -1,6 +1,6 @@
-import RenderIt from './renderer/render-it';
-import mainRecursive from './main';
-import log2console from 'log2console';
+const RenderIt = require('./renderer/render-it');
+const mainRecursive = require('./main');
+const log2console = require('log2console');
 
 class Other extends RenderIt {
   constructor() {
@@ -14,4 +14,4 @@ class Other extends RenderIt {
   }
 }
 
-export default Other;
+module.exports = Other;

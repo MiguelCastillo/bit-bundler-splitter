@@ -40,19 +40,19 @@ describe("BitBundler test suite", function() {
         });
       });
 
-      it("then the result has two modules", function() {
+      it("then the main bundle has two modules", function() {
         expect(result.shards["main"].modules).to.have.lengthOf(2);
       });
 
-      it("then the main bundle has a module with fileName a.js", function() {
+      it("then the main bundle has a module with filename a.js", function() {
         expect(result.getModules(result.shards["main"].modules)[0].fileName).to.be.equal("a.js");
       });
 
-      it("then the main bundle has a module with fileName b.js", function() {
+      it("then the main bundle has a module with filename b.js", function() {
         expect(result.getModules(result.shards["main"].modules)[1].fileName).to.be.equal("b.js");
       });
 
-      it("then result contains the correct bundle content", function() {
+      it("then the main bundle contains the correct bundle content", function() {
         expect(trimResult(result.shards["main"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){const b = require("./b");console.log("a", b());},{"./b":3}],3:[function(require,module,exports){module.exports = function() {  return "b";};},{}]},{},[1])`);
       });
 
@@ -60,32 +60,48 @@ describe("BitBundler test suite", function() {
         expect(result.shards).to.have.property("test/dist/basic/c.js");
       });
 
-      it("then splitter created a shard for 'test/dist/basic/c.js' with the correct bundle result", function() {
-        expect(trimResult(result.shards["test/dist/basic/c.js"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({2:[function(require,module,exports){require("./w");module.exports = require("./Y");},{"./Y":7,"./w":9}]},{},[2])`);
+      it("then the 'test/dist/basic/c.js' bundle has 1 module", function() {
+        expect(result.shards['test/dist/basic/c.js'].modules).to.have.lengthOf(1);
+      });
+
+      it("then the 'test/dist/basic/c.js' bundle has a module with filename c.js", function() {
+        expect(result.getModules(result.shards["test/dist/basic/c.js"].modules)[0].fileName).to.be.equal("c.js");
       });
 
       it("then splitter created a shard for 'test/dist/basic/W.js'", function() {
         expect(result.shards).to.have.property("test/dist/basic/W.js");
       });
 
-      it("then splitter created a shard for 'test/dist/basic/W.js' with the correct bundle result", function() {
-        expect(trimResult(result.shards["test/dist/basic/W.js"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({9:[function(require,module,exports){module.exports = require("./X");const path = require("path");},{"./X":8,"path":5}]},{},[9])`);
+      it("then the 'test/dist/basic/W.js' bundle has 1 module", function() {
+        expect(result.shards["test/dist/basic/W.js"].modules).to.have.lengthOf(1);
+      });
+
+      it("then the 'test/dist/basic/W.js' bundle has a module with filename W.js", function() {
+        expect(result.getModules(result.shards["test/dist/basic/W.js"].modules)[0].fileName).to.be.equal("w.js");
       });
 
       it("then splitter created a shard for 'test/dist/basic/Y.js'", function() {
         expect(result.shards).to.have.property("test/dist/basic/Y.js");
       });
 
-      it("then splitter created a shard for 'test/dist/basic/Y.js' with the correct bundle result", function() {
-        expect(trimResult(result.shards["test/dist/basic/Y.js"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({7:[function(require,module,exports){/*eslint no-console: ["off"]*/const path = require("path");const z = require("./z");const X = require("./X");function Y() {  console.log(X, typeof X);  console.log("Say Y");  z().potatoes();}module.exports = Y;},{"./X":8,"./z":4,"path":5}],8:[function(require,module,exports){/*eslint no-console: ["off"]*/var Y = require("./Y");function X() {  console.log("Say X");  this._y = new Y();}module.exports = new X();},{"./Y":7}]},{},[7])`);
+      it("then the 'test/dist/basic/Y.js' bundle has 1 module", function() {
+        expect(result.shards["test/dist/basic/Y.js"].modules).to.have.lengthOf(3);
+      });
+
+      it("then the 'test/dist/basic/Y.js' bundle has a module with filename Y.js", function() {
+        expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[0].fileName).to.be.equal("Y.js");
+      });
+
+      it("then the 'test/dist/basic/Y.js' bundle has a module with filename X.js", function() {
+        expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[1].fileName).to.be.equal("X.js");
+      });
+
+      it("then the 'test/dist/basic/Y.js' bundle has a module with filename aa.js", function() {
+        expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[2].fileName).to.be.equal("aa.js");
       });
 
       it("then splitter created a shard for 'test/dist/basic/deep/Z.js'", function() {
         expect(result.shards).to.have.property("test/dist/basic/deep/Z.js");
-      });
-
-      it("then splitter created a shard for 'test/dist/basic/deep/Z.js' with the correct bundle result", function() {
-        expect(trimResult(result.shards["test/dist/basic/deep/Z.js"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({4:[function(require,module,exports){/*eslint no-console: ["off"]*/module.exports = function() {  return {    roast: "this",    potatoes: function() {      console.log("Say potatoes");    }  };};},{}]},{},[4])`);
       });
     });
   });
@@ -126,28 +142,32 @@ describe("BitBundler test suite", function() {
         expect(result.shards).to.have.property("main");
       });
 
-      it("then splitter created a shard for 'main' with the correct bundle result", function() {
-        expect(trimResult(result.shards["main"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){import Other from './other';import log2console from 'log2console';class Main {  constructor() {    this._other = new Other();  }  render() {    log2console('render:main');    this._other.render();  }}(new Main()).render();},{"./other":2,"log2console":3}]},{},[1])`);
-      });
-
-      it("then the result has one module", function() {
-        expect(result.shards["main"].modules).to.have.lengthOf(1);
+      it("then the 'main' bundle has one module", function() {
+        expect(result.shards["main"].modules).to.have.lengthOf(0);
       });
 
       it("then splitter created a shard for 'other'", function() {
         expect(result.shards).to.have.property("other");
       });
 
-      it("then splitter created a shard for 'other' with the correct bundle result", function() {
-        expect(trimResult(result.shards["other"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({2:[function(require,module,exports){import RenderIt from './renderer/render-it';import mainRecursive from './main';import log2console from 'log2console';class Other extends RenderIt {  constructor() {    super();  }  render() {    super.render();    log2console('render:other');    log2console('test recursive', mainRecursive);  }}export default Other;},{"./main":1,"./renderer/render-it":8,"log2console":3}]},{},[2])`);
+      it("then the 'other' bundle has 3 modules", function() {
+        expect(result.shards["other"].modules).to.have.lengthOf(2);
       });
 
       it("then splitter created a shard for 'renderer'", function() {
         expect(result.shards).to.have.property("renderer");
       });
 
-      it("then splitter created a shard for 'renderer' with the correct bundle result", function() {
-        expect(trimResult(result.shards["renderer"].content)).to.be.equal(`require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({8:[function(require,module,exports){import log2console from 'log2console';class RenderIt {  constructor() {  }  render() {    log2console('base render-it!');  }}export default RenderIt;},{"log2console":3}]},{},[8])`);
+      it("then the 'renderer' bundle has 1 module", function() {
+        expect(result.shards["renderer"].modules).to.have.lengthOf(1);
+      });
+
+      it("then the splitter created a 'vendor' bundle", function() {
+        expect(result.shards).to.have.property("vendor");
+      })
+
+      it("then the 'vendor' bundle has 3 modules", function() {
+        expect(result.shards["vendor"].modules).to.have.lengthOf(5);
       });
     });
   });

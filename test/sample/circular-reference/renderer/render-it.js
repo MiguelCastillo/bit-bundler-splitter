@@ -1,4 +1,4 @@
-import log2console from 'log2console';
+const log2console = require('log2console');
 
 class RenderIt {
   constructor() {
@@ -9,4 +9,4 @@ class RenderIt {
   }
 }
 
-export default RenderIt;
+module.exports = RenderIt;

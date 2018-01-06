@@ -1,5 +1,5 @@
-import Other from './other';
-import log2console from 'log2console';
+const Other = require('./other');
+const log2console = require('log2console');
 
 class Main {
   constructor() {

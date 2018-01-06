@@ -79,12 +79,9 @@ function buildShardLoadOrder(shardRepository, shardNames) {
 }
 
 function normalizeCommonModules(shardRepository, shardList, moduleStats) {
-  const mainShard = shardRepository.getShard("main");
-
   Object
     .keys(moduleStats)
     .filter(moduleId => Object.keys(moduleStats[moduleId].shards).length > 1)
-    .filter(moduleId => mainShard.entries.indexOf(moduleId) === -1)
     .forEach(moduleId => {
       var shards = shardList.filter(shardId => moduleStats[moduleId].shards[shardId]);
       shardRepository.setShard(shardRepository.getShard(shards.shift()).addModules(moduleId));
