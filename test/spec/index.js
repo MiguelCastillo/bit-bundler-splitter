@@ -17,10 +17,10 @@ describe("BitBundler test suite", function() {
         bundler: [
           bundleSplitter([
             // { name: "test/dist/X.js", match: { fileName: "X.js" }},
-            { name: "test/dist/basic/c.js", match: { fileName: "c.js" }},
-            { name: "test/dist/basic/W.js", match: { fileName: "w.js" }},
-            { name: "test/dist/basic/Y.js", match: { fileName: "Y.js" }},
-            { name: "test/dist/basic/deep/Z.js", match: { fileName: "z.js" }},
+            { name: "test/dist/basic/c.js", match: { filename: "c.js" }},
+            { name: "test/dist/basic/W.js", match: { filename: "w.js" }},
+            { name: "test/dist/basic/Y.js", match: { filename: "Y.js" }},
+            { name: "test/dist/basic/deep/Z.js", match: { filename: "z.js" }},
             { name: "test/dist/basic/deep/vendor.js", match: { path: /\/node_modules\// } }
           ])
         ]
@@ -45,11 +45,11 @@ describe("BitBundler test suite", function() {
       });
 
       it("then the main bundle has a module with filename a.js", function() {
-        expect(result.getModules(result.shards["main"].modules)[0].fileName).to.be.equal("a.js");
+        expect(result.getModules(result.shards["main"].modules)[0].filename).to.be.equal("a.js");
       });
 
       it("then the main bundle has a module with filename b.js", function() {
-        expect(result.getModules(result.shards["main"].modules)[1].fileName).to.be.equal("b.js");
+        expect(result.getModules(result.shards["main"].modules)[1].filename).to.be.equal("b.js");
       });
 
       it("then the main bundle contains the correct bundle content", function() {
@@ -65,7 +65,7 @@ describe("BitBundler test suite", function() {
       });
 
       it("then the 'test/dist/basic/c.js' bundle has a module with filename c.js", function() {
-        expect(result.getModules(result.shards["test/dist/basic/c.js"].modules)[0].fileName).to.be.equal("c.js");
+        expect(result.getModules(result.shards["test/dist/basic/c.js"].modules)[0].filename).to.be.equal("c.js");
       });
 
       it("then splitter created a shard for 'test/dist/basic/W.js'", function() {
@@ -77,7 +77,7 @@ describe("BitBundler test suite", function() {
       });
 
       it("then the 'test/dist/basic/W.js' bundle has a module with filename W.js", function() {
-        expect(result.getModules(result.shards["test/dist/basic/W.js"].modules)[0].fileName).to.be.equal("w.js");
+        expect(result.getModules(result.shards["test/dist/basic/W.js"].modules)[0].filename).to.be.equal("w.js");
       });
 
       it("then splitter created a shard for 'test/dist/basic/Y.js'", function() {
@@ -89,15 +89,15 @@ describe("BitBundler test suite", function() {
       });
 
       it("then the 'test/dist/basic/Y.js' bundle has a module with filename Y.js", function() {
-        expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[0].fileName).to.be.equal("Y.js");
+        expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[0].filename).to.be.equal("Y.js");
       });
 
       it("then the 'test/dist/basic/Y.js' bundle has a module with filename X.js", function() {
-        expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[1].fileName).to.be.equal("X.js");
+        expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[1].filename).to.be.equal("X.js");
       });
 
       it("then the 'test/dist/basic/Y.js' bundle has a module with filename aa.js", function() {
-        expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[2].fileName).to.be.equal("aa.js");
+        expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[2].filename).to.be.equal("aa.js");
       });
 
       it("then splitter created a shard for 'test/dist/basic/deep/Z.js'", function() {
@@ -116,7 +116,7 @@ describe("BitBundler test suite", function() {
           bundleSplitter([
             { name: "vendor", dest: "test/dist/circular-reference/deep/vendor.js", match: { path: /\/node_modules\// } },
             { name: "renderer", dest: "test/dist/circular-reference/renderer.js", match: { path: /\/renderer\// } },
-            { name: "other", dest: "test/dist/circular-reference/other.js", match: { fileName: "other.js" } }
+            { name: "other", dest: "test/dist/circular-reference/other.js", match: { filename: "other.js" } }
           ])
         ]
       });
