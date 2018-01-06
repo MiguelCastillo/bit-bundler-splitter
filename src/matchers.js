@@ -7,6 +7,30 @@ module.exports = function createMatcher(matches) {
     return matches;
   }
 
+  if (matches.constructor !== Object) {
+    matches = [].concat(matches).reduce((accumulator, match) => {
+      var target;
+
+      if (typeof match === "string") {
+        target = "path";
+        match = new RegExp(match);
+      }
+      else if (match instanceof RegExp) {
+        target = "path";
+      };
+
+      if (target) {
+        if (!accumulator[target]) {
+          accumulator[target] = [];
+        }
+
+        accumulator[target].push(match);
+      }
+      
+      return accumulator;
+    }, {});
+  }
+
   var rules = Object
     .keys(matches)
     .reduce((rules, matchName) => {
