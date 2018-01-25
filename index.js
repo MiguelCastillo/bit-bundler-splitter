@@ -78,18 +78,27 @@ function buildShardLoadOrder(shardRepository, shardNames) {
   return shardDependencyOrder;
 }
 
-function normalizeCommonModules(shardRepository, shardList, moduleStats) {
+function normalizeCommonModules(shardRepository, shardOrderedList, moduleStats) {
   Object
     .keys(moduleStats)
     .filter(moduleId => Object.keys(moduleStats[moduleId].shards).length > 1)
     .forEach(moduleId => {
-      var shards = shardList.filter(shardId => moduleStats[moduleId].shards[shardId]);
-      shardRepository.setShard(shardRepository.getShard(shards.shift()).addModules(moduleId));
+      var shards = shardOrderedList.filter(shardId => moduleStats[moduleId].shards[shardId]);
+      var entry = shards.find(shardId => shardRepository.getShard(shardId).entries.indexOf(moduleId) !== -1);
 
-      shards.forEach(shardId => {
-        const shard = shardRepository.getShard(shardId);
-        shardRepository.setShard(shard.setModules(shard.modules.filter(id => id !== moduleId)));
-      });
+      // If the module is NOT an entry module, then we will store in the first
+      // shard in the rotation so that the module gets loaded early in the
+      // dependency tree.
+      if (entry === undefined) {
+        shards.shift();
+      }
+
+      shards
+        .filter(shardId => entry !== shardId)
+        .forEach(shardId => {
+          const shard = shardRepository.getShard(shardId);
+          shardRepository.setShard(shard.setModules(shard.modules.filter(id => id !== moduleId)));
+        });
     });
 }
 
