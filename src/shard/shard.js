@@ -61,8 +61,7 @@ class Shard {
   toBundle() {
     const bundle = {
       name: this.name,
-      modules: this.modules,
-      entries: this.entries
+      modules: this.modules
     };
 
     if (this.splitter && this.splitter.dest) {

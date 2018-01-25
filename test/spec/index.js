@@ -142,16 +142,24 @@ describe("BitBundler test suite", function() {
         expect(result.shards).to.have.property("main");
       });
 
-      it("then the 'main' bundle has one module", function() {
-        expect(result.shards["main"].modules).to.have.lengthOf(0);
+      it("then the 'main' bundle has 1 module", function() {
+        expect(result.shards["main"].modules).to.have.lengthOf(1);
+      });
+
+      it("then the module in the 'main' bundle has the expected name", function() {
+        expect(result.shards["main"].modules[0]).to.contain("circular-reference/main.js");
       });
 
       it("then splitter created a shard for 'other'", function() {
         expect(result.shards).to.have.property("other");
       });
 
-      it("then the 'other' bundle has 3 modules", function() {
-        expect(result.shards["other"].modules).to.have.lengthOf(2);
+      it("then the 'other' bundle has 1 modules", function() {
+        expect(result.shards["other"].modules).to.have.lengthOf(1);
+      });
+
+      it("then the module in the 'other' bundle has the expected name", function() {
+        expect(result.shards["other"].modules[0]).to.contain("circular-reference/other.js");
       });
 
       it("then splitter created a shard for 'renderer'", function() {
@@ -162,11 +170,15 @@ describe("BitBundler test suite", function() {
         expect(result.shards["renderer"].modules).to.have.lengthOf(1);
       });
 
+      it("then the module in the 'renderer' bundle has the expected name", function() {
+        expect(result.shards["renderer"].modules[0]).to.contain("circular-reference/renderer/render-it.js");
+      });
+
       it("then the splitter created a 'vendor' bundle", function() {
         expect(result.shards).to.have.property("vendor");
-      })
+      });
 
-      it("then the 'vendor' bundle has 3 modules", function() {
+      it("then the 'vendor' bundle has 5 modules", function() {
         expect(result.shards["vendor"].modules).to.have.lengthOf(5);
       });
     });
