@@ -1,4 +1,6 @@
 /*eslint no-console: ["off"]*/
+require("belty");
+
 module.exports = function() {
   return {
     roast: "this",

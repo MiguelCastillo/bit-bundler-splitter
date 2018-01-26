@@ -1,5 +1,5 @@
 /*eslint no-console: ["off"]*/
-const path = require("path");
+const log2console = require("log2console");
 const z = require("./z");
 const X = require("./X");
 

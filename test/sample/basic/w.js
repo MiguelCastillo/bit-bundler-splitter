@@ -1,2 +1,2 @@
 module.exports = require("./X");
-const path = require("path");
+const log2console = require("log2console");

@@ -47,10 +47,11 @@ module.exports = function nodeBuilder(moduleCache, splitters, shardRepository) {
     return shard1 && shard2 && shard1.name !== shard2.name;
   }  
 
-  function buildNode(shardName) {
-    var currentNode = shardRepository.getShard(shardName);
-    var moduleIndex = 0, moduleIdList = currentNode.entries.slice(0);     
+  function buildNode(info) {
+    var currentNode = shardRepository.getShard(info.name);
+    var moduleIndex = 0, moduleIdList = info.entries.slice(0);     
     var currentModule, newNode, nodeUpdate;
+    var result = {};
 
     for (moduleIndex = 0; moduleIdList.length !== moduleIndex; moduleIndex++) {
       currentModule = moduleCache[moduleIdList[moduleIndex]];
@@ -82,6 +83,12 @@ module.exports = function nodeBuilder(moduleCache, splitters, shardRepository) {
       else if (nodesNotEqual(currentNode, newNode)) {
         moduleIdList[moduleIndex] = null;
         shardRepository.setShard(newNode.addEntries(currentModule.id));
+
+        if (!result[newNode.name]) {
+          result[newNode.name] = { entries: [] };
+        }
+
+        result[newNode.name].entries.push(currentModule.id);
       }
       else {
         moduleIdList = moduleIdList.concat(currentModule.deps.map(dep => dep.id));
@@ -90,6 +97,8 @@ module.exports = function nodeBuilder(moduleCache, splitters, shardRepository) {
     }
 
     shardRepository.setShard(currentNode.addModules(moduleIdList.filter(Boolean)));
+
+    return result;
   }
 
   return {
