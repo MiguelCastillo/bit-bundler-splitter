@@ -8,12 +8,12 @@ function treeBuilder(moduleCache, splitters, shardRepository) {
 
     const nodeBuilder = createNodeBuilder(moduleCache, splitters, shardRepository);
     var shardList = [{ name: rootShardName, entries: rootModuleIds }];
-    var result;
+    var splitPoints;
 
     for (var shardIndex = 0; shardList.length !== shardIndex; shardIndex++) {
-      result = nodeBuilder.buildNode(shardList[shardIndex]);
-      result = Object.keys(result).map(key => ({ name: key, entries: result[key].entries }));
-      shardList = shardList.concat(result);
+      splitPoints = nodeBuilder.buildNode(shardList[shardIndex]);
+      splitPoints = Object.keys(splitPoints).map(key => ({ name: key, entries: splitPoints[key].entries }));
+      shardList = shardList.concat(splitPoints);
     }
 
     return nodeBuilder.getStats();
