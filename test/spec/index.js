@@ -17,11 +17,11 @@ describe("BitBundler test suite", function() {
         bundler: [
           bundleSplitter([
             // { name: "test/dist/X.js", match: { fileName: "X.js" }},
+            { name: "test/dist/basic/deep/vendor.js", match: ["/node_modules/"] },
             { name: "test/dist/basic/c.js", match: /c.js$/ },
             { name: "test/dist/basic/W.js", match: /w.js$/ },
             { name: "test/dist/basic/Y.js", match: "basic/Y.js" },
-            { name: "test/dist/basic/deep/Z.js", match: { filename: "z.js" }},
-            { name: "test/dist/basic/deep/vendor.js", match: ["/node_modules/"] }
+            { name: "test/dist/basic/deep/Z.js", match: { filename: "z.js" }}
           ])
         ]
       });
@@ -104,6 +104,10 @@ describe("BitBundler test suite", function() {
 
       it("then splitter created a shard for 'test/dist/basic/deep/Z.js'", function() {
         expect(result.shards).to.have.property("test/dist/basic/deep/Z.js");
+      });
+
+      it("then the 'vendor' bundle has 27 modules", function() {
+        expect(result.shards["test/dist/basic/deep/vendor.js"].modules).to.have.lengthOf(27);
       });
     });
   });

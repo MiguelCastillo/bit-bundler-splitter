@@ -7,17 +7,13 @@ function treeBuilder(moduleCache, splitters, shardRepository) {
     shardRepository.setShard({ name: rootShardName, entries: rootModuleIds });
 
     const nodeBuilder = createNodeBuilder(moduleCache, splitters, shardRepository);
-    const visitedShards = {};
-    var shardList = [rootShardName];
-    var currentShard;
+    var shardList = [{ name: rootShardName, entries: rootModuleIds }];
+    var splitPoints;
 
     for (var shardIndex = 0; shardList.length !== shardIndex; shardIndex++) {
-      if (!visitedShards[shardList[shardIndex]]) {
-        visitedShards[shardList[shardIndex]] = true;
-        nodeBuilder.buildNode(shardList[shardIndex]);
-        currentShard = shardRepository.getShard(shardList[shardIndex]);
-        shardList = shardList.concat(currentShard.children);
-      }
+      splitPoints = nodeBuilder.buildNode(shardList[shardIndex]);
+      splitPoints = Object.keys(splitPoints).map(key => ({ name: key, entries: splitPoints[key].entries }));
+      shardList = shardList.concat(splitPoints);
     }
 
     return nodeBuilder.getStats();
