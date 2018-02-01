@@ -1,19 +1,23 @@
 const createNodeBuilder = require("./nodeBuilder");
 
 function treeBuilder(moduleCache, splitters, shardRepository) {
-
   /** the tree is built using a breadth first traversal */
-  function buildTree(rootShardName, rootModuleIds) {
-    shardRepository.setShard({ name: rootShardName, entries: rootModuleIds });
-
-    const nodeBuilder = createNodeBuilder(moduleCache, splitters, shardRepository);
-    var shardList = [{ name: rootShardName, entries: rootModuleIds }];
-    var splitPoints;
+  function buildTree(rootShards) {
+    const nodeBuilder = createNodeBuilder(moduleCache, splitters);
+    var shardList = [].concat(rootShards).map(shard => shard.setModules([]));
+    var builtNode;
 
     for (var shardIndex = 0; shardList.length !== shardIndex; shardIndex++) {
-      splitPoints = nodeBuilder.buildNode(shardList[shardIndex]);
-      splitPoints = Object.keys(splitPoints).map(key => ({ name: key, entries: splitPoints[key].entries }));
-      shardList = shardList.concat(splitPoints);
+      builtNode = nodeBuilder.buildNode(shardList[shardIndex]);
+
+      shardList = shardList.concat(
+        Object
+          .keys(builtNode.splitPoints)
+          .map(key => builtNode.splitPoints[key])
+      );
+
+      var shard = shardRepository.getShard(builtNode.node.name);
+      shardRepository.setShard(shard ? shard.merge(builtNode.node) : builtNode.node);
     }
 
     return nodeBuilder.getStats();

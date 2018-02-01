@@ -8,7 +8,7 @@ import bundleSplitter from "../../index";
 describe("BitBundler test suite", function() {
   const createBundler = (config) => new BitBundler(Object.assign({ log: { stream: loggers.through() } }, config || {}));
 
-  describe("When spitting bundles with shared modules", function() {
+  describe("When spitting bundles with circular references across shards (X and Y)", function() {
     var bitbundler;
 
     before(function() {
@@ -16,10 +16,10 @@ describe("BitBundler test suite", function() {
         loader: ["bit-loader-builtins"],
         bundler: [
           bundleSplitter([
-            // { name: "test/dist/X.js", match: { fileName: "X.js" }},
             { name: "test/dist/basic/deep/vendor.js", match: ["/node_modules/"] },
             { name: "test/dist/basic/c.js", match: /c.js$/ },
             { name: "test/dist/basic/W.js", match: /w.js$/ },
+            { name: "test/dist/basic/X.js", match: { filename: "X.js" }},
             { name: "test/dist/basic/Y.js", match: "basic/Y.js" },
             { name: "test/dist/basic/deep/Z.js", match: { filename: "z.js" }}
           ])
@@ -87,19 +87,23 @@ describe("BitBundler test suite", function() {
       });
 
       it("then the 'test/dist/basic/Y.js' bundle has 1 module", function() {
-        expect(result.shards["test/dist/basic/Y.js"].modules).to.have.lengthOf(3);
+        expect(result.shards["test/dist/basic/Y.js"].modules).to.have.lengthOf(1);
       });
 
       it("then the 'test/dist/basic/Y.js' bundle has a module with filename Y.js", function() {
         expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[0].filename).to.be.equal("Y.js");
       });
 
-      it("then the 'test/dist/basic/Y.js' bundle has a module with filename X.js", function() {
-        expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[1].filename).to.be.equal("X.js");
+      it("then the 'test/dist/basic/X.js' bundle has 2 module", function() {
+        expect(result.shards["test/dist/basic/X.js"].modules).to.have.lengthOf(2);
       });
 
-      it("then the 'test/dist/basic/Y.js' bundle has a module with filename aa.js", function() {
-        expect(result.getModules(result.shards["test/dist/basic/Y.js"].modules)[2].filename).to.be.equal("aa.js");
+      it("then the 'test/dist/basic/X.js' bundle has a module with filename X.js", function() {
+        expect(result.getModules(result.shards["test/dist/basic/X.js"].modules)[0].filename).to.be.equal("X.js");
+      });
+
+      it("then the 'test/dist/basic/X.js' bundle has a module with filename aa.js", function() {
+        expect(result.getModules(result.shards["test/dist/basic/X.js"].modules)[1].filename).to.be.equal("aa.js");
       });
 
       it("then splitter created a shard for 'test/dist/basic/deep/Z.js'", function() {
@@ -112,7 +116,7 @@ describe("BitBundler test suite", function() {
     });
   });
 
-  describe("When creating a bundle where the root module has a circular reference", function() {
+  describe("When creating a bundle where the root module has a circular reference with a shard", function() {
     var bitbundler;
 
     before(function() {

@@ -2,16 +2,27 @@
 
 const defaults = {
   name: "",
+  dest: "",
   entries: [],
   modules: [],
   parents: [],
   children: [],
-  splitter: null
+  implicit: false
 };
 
 class Shard {
   constructor(options) {
     Object.assign(this, defaults, options);
+  }
+
+  merge(shard) {
+    return this
+      .addEntries(shard.entries)
+      .addModules(shard.modules)
+      .addParents(shard.parents)
+      .addChildren(shard.children)
+      .setDest(shard.dest)
+      .setDynamic(shard.dynamic);
   }
 
   configure(options) {
@@ -54,21 +65,20 @@ class Shard {
     return this.configure({ children: dedup(this.children.concat(children)) });
   }
 
-  setSplitter(splitter) {
-    return this.configure({ splitter: splitter });
+  setDest(dest) {
+    return this.configure({ dest: dest });
+  }
+
+  setDynamic(dynamic) {
+    return this.configure({ dynamic: dynamic });
   }
 
   toBundle() {
-    const bundle = {
+    return {
       name: this.name,
-      modules: this.modules
+      modules: this.modules,
+      dest: this.dest
     };
-
-    if (this.splitter && this.splitter.dest) {
-      bundle.dest = this.splitter.dest;
-    }
-
-    return bundle;
   }
 }
 

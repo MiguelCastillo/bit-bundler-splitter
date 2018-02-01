@@ -3,6 +3,7 @@
 const createShardTreeBuilder = require("./src/shard/treeBuilder");
 const createShardRepository = require("./src/shard/repository");
 const Splitter = require("./src/splitter");
+const Shard = require("./src/shard/shard");
 const path = require("path");
 const loaderJS = require("fs").readFileSync(path.join(__dirname, "loader.js"));
 
@@ -20,9 +21,8 @@ function splitContext(bundler, context, splitters) {
   const mainBundle = context.getBundles("main");
   const moduleCache = context.getCache();
   const shardRepository = createShardRepository();
-  const shardTreeBuilder = createShardTreeBuilder(moduleCache, splitters, shardRepository);
-  const shardStats = shardTreeBuilder.buildTree("main", mainBundle.entries);
-  var shardLoadOrder = buildShardLoadOrder(shardRepository, "main");
+  const shardStats = createShardTreeBuilder(moduleCache, splitters, shardRepository).buildTree(new Shard(mainBundle));
+  var shardLoadOrder = buildShardLoadOrder(shardRepository, mainBundle.name);
 
   // Move things around in the tree based on load order.
   normalizeCommonModules(shardRepository, shardLoadOrder, shardStats);
@@ -52,7 +52,7 @@ function buildShardLoader(splitData) {
   const shardPaths = splitData.shardLoadOrder
     .map(shardName => context.getBundles(shardName).dest)
     .filter(dest => dest && typeof dest === "string")
-    .map(shardPath => `"./${path.relative(path.dirname(loaderPath), shardPath)}"`);
+    .map(shardPath => `"./${path.relative(path.dirname(loaderPath || ""), shardPath)}"`);
 
   const loadEntries = `(function(){\n${loaderJS}\n;load([${shardPaths}]);\n})();`;
   return context.setBundle({ name: "loader", content: loadEntries, dest: loaderPath });
