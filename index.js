@@ -19,13 +19,17 @@ function normalizeOptions(options) {
 
 function splitContext(bundler, context, splitters) {
   const mainBundle = context.getBundles("main");
-  const moduleCache = context.getCache();
+  const shardTree = createShardTreeBuilder(context.getCache(), splitters).buildTree(new Shard(mainBundle));
   const shardRepository = createShardRepository();
-  const shardStats = createShardTreeBuilder(moduleCache, splitters, shardRepository).buildTree(new Shard(mainBundle));
+
+  // Setup the shard repository to make it easier to make changes to
+  // the shards.
+  Object.keys(shardTree.nodes).forEach(shard => shardRepository.setShard(shardTree.nodes[shard]));
+
   var shardLoadOrder = buildShardLoadOrder(shardRepository, mainBundle.name);
 
-  // Move things around in the tree based on load order.
-  normalizeCommonModules(shardRepository, shardLoadOrder, shardStats);
+  // Move things around in the shard tree based on load order.
+  normalizeCommonModules(shardRepository, shardLoadOrder, shardTree.stats);
 
   const updatedContext = shardRepository
     .getShard(shardLoadOrder)
