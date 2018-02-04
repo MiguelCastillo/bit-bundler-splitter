@@ -5,6 +5,7 @@ const createShardRepository = require("./src/shard/repository");
 const Splitter = require("./src/splitter");
 const Shard = require("./src/shard/shard");
 const path = require("path");
+const crypto = require("crypto");
 const loaderJS = require("fs").readFileSync(path.join(__dirname, "loader.js"));
 
 function createSplitter(options) {
@@ -19,47 +20,62 @@ function normalizeOptions(options) {
 
 function splitContext(bundler, context, splitters) {
   const mainBundle = context.getBundles("main");
+  const rootDir = getDirname(mainBundle.dest);
   const shardTree = createShardTreeBuilder(context.getCache(), splitters).buildTree(new Shard(mainBundle));
   const shardRepository = createShardRepository();
 
-  // Setup the shard repository to make it easier to make changes to
-  // the shards.
-  Object.keys(shardTree.nodes).forEach(shard => shardRepository.setShard(shardTree.nodes[shard]));
+  // Setup the shard repository to make it easier to make changes to the shards.
+  Object.keys(shardTree.nodes).forEach(shardName => shardRepository.setShard(shardTree.nodes[shardName]));
 
-  var shardLoadOrder = buildShardLoadOrder(shardRepository, mainBundle.name);
+  debugger;
+  const dynamicShards = shardRepository
+    .getAllShards()
+    .filter(shard => shard.dynamic)
+    .map(shard => shard.implicit ? shard.setDest(path.join(rootDir, getHash(shard.dest), path.extname(shard.dest))) : shard);
+
+  const rootShards = [shardRepository.getShard("main")]
+    .concat(dynamicShards)
+    .map(shard => ({
+      shard: shard,
+      loadOrder: buildShardLoadOrder(shardRepository, shard.name)
+    }));
 
   // Move things around in the shard tree based on load order.
-  normalizeCommonModules(shardRepository, shardLoadOrder, shardTree.stats);
+  rootShards.forEach(rootShard => normalizeCommonModules(shardRepository, rootShard.loadOrder, shardTree.stats));
 
+  // Rebuild the context with the shards.
   const updatedContext = shardRepository
-    .getShard(shardLoadOrder)
-    .map(shard => shard.toBundle())
+    .getAllShards()
+    .filter(shard => shard.modules.length)
+    .reduce((context, shard) => context.setBundle(shard.toBundle()), context);
+
+  return rootShards
+    .map(rootShard => buildShardLoader(rootShard, shardRepository))
     .filter(Boolean)
-    .reduce((context, bundle) => context.setBundle(bundle), context);
-
-  // Once the shards are all normalized and the bundles created,
-  // make sure to remove from the loader any bundles that no
-  // longer have any modules in it.
-  shardLoadOrder = shardLoadOrder.filter(shardName => shardRepository.getShard(shardName).modules.length);
-
-  return {
-    context: updatedContext,
-    shardLoadOrder: shardLoadOrder
-  };
+    .reduce((context, loader) => context.setBundle(loader), updatedContext);
 }
 
-function buildShardLoader(splitData) {
-  const context = splitData.context;
-  const mainBundle = context.getBundles("main");
-  const loaderPath = mainBundle.dest && typeof mainBundle.dest === "string" ? path.join(path.dirname(mainBundle.dest), "loader.js") : null;
+function buildShardLoader(shardInfo, shardRepository) {
+  const dest = shardInfo.shard.dest && typeof shardInfo.shard.dest === "string" ? shardInfo.shard.dest : null;
 
-  const shardPaths = splitData.shardLoadOrder
-    .map(shardName => context.getBundles(shardName).dest)
-    .filter(dest => dest && typeof dest === "string")
-    .map(shardPath => `"./${path.relative(path.dirname(loaderPath || ""), shardPath)}"`);
+  if (!dest) {
+    return;
+  }
 
-  const loadEntries = `(function(){\n${loaderJS}\n;load([${shardPaths}]);\n})();`;
-  return context.setBundle({ name: "loader", content: loadEntries, dest: loaderPath });
+  const dirname = path.dirname(dest);
+  const filename = "loader-" + path.basename(dest);
+
+  const shardPaths = shardRepository
+    .getShard(shardInfo.loadOrder)
+    .map(shard => shard.dest)
+    .filter(shardPath => shardPath && typeof shardPath === "string")
+    .map(shardPath => `"./${path.relative(dirname, shardPath)}"`);
+
+  return {
+    name: filename,
+    content: `(function(){\n${loaderJS}\n;load([${shardPaths}]);\n})();`,
+    dest: path.join(dirname, filename)
+  };
 }
 
 function buildShardLoadOrder(shardRepository, shardNames) {
@@ -67,7 +83,11 @@ function buildShardLoadOrder(shardRepository, shardNames) {
   var shardName, children;
 
   for (var shardIndex = 0; shardList.length > shardIndex; shardIndex++) {
-    children = [shardList[shardIndex]].reduce((accumulator, parent) => accumulator.concat(shardRepository.getShard(parent).children), []);
+    children = [shardList[shardIndex]].reduce((accumulator, parent) => {
+      const shard = shardRepository.getShard(parent);
+      return shard.dynamic ? accumulator : accumulator.concat(shard.children);
+    }, []);
+
     shardList = shardList.concat(children);
   }
 
@@ -106,6 +126,17 @@ function normalizeCommonModules(shardRepository, shardOrderedList, moduleStats) 
     });
 }
 
+function getDirname(filepath) {
+  return filepath && typeof filepath === "string" ? path.dirname(filepath) : null;
+}
+
+function getHash(input) {
+  return crypto
+    .createHash("sha256")
+    .update(input.toString())
+    .digest("hex");
+}
+
 function createBundlerSplitter(options) {
   var splitters = []
     .concat(options)
@@ -113,7 +144,7 @@ function createBundlerSplitter(options) {
     .map(createSplitter);
 
   function bundleSplitterRun(bundler, context) {
-    return buildShardLoader(splitContext(bundler, context, splitters));
+    return splitContext(bundler, context, splitters);
   }
 
   return {

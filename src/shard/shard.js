@@ -12,7 +12,15 @@ const defaults = {
 
 class Shard {
   constructor(options) {
+    options = options || {};
     Object.assign(this, defaults, options);
+
+    var dest = this.dest;
+    var name = this.name;
+
+    if (!dest && name) {
+      this.dest = dest !== false && looksLikeFileName(name) ? name : false;
+    }
   }
 
   merge(shard) {
@@ -89,5 +97,11 @@ function dedup(list) {
     )
   );
 }
+
+
+function looksLikeFileName(name) {
+  return /[\w]+[\.][\w]+$/.test(name);
+}
+
 
 module.exports = Shard;
