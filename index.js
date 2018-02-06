@@ -5,7 +5,6 @@ const createShardRepository = require("./src/shard/repository");
 const Splitter = require("./src/splitter");
 const Shard = require("./src/shard/shard");
 const path = require("path");
-const crypto = require("crypto");
 const loaderJS = require("fs").readFileSync(path.join(__dirname, "loader.js"));
 
 function createSplitter(options) {
@@ -22,26 +21,30 @@ function splitContext(bundler, context, splitters) {
   const mainBundle = context.getBundles("main");
   const rootDir = getDirname(mainBundle.dest);
   const shardTree = createShardTreeBuilder(context.getCache(), splitters).buildTree(new Shard(mainBundle));
-  const shardRepository = createShardRepository();
+  const shardRepository = buildShardRepository(shardTree);
 
-  // Setup the shard repository to make it easier to make changes to the shards.
-  Object.keys(shardTree.nodes).forEach(shardName => shardRepository.setShard(shardTree.nodes[shardName]));
+  // Implicit dynamic bundles dont have a valid dest since the split
+  // occurs because of dynamically loaded module rather than a split
+  // rule in which you specify a destination.
+  shardRepository
+    .getAllShards()
+    .filter(shard => shard.dynamic && shard.implicit)
+    .forEach(shard => shardRepository.setShard(configureDest(shard, rootDir)));
 
-  debugger;
   const dynamicShards = shardRepository
     .getAllShards()
     .filter(shard => shard.dynamic)
-    .map(shard => shard.implicit ? shard.setDest(path.join(rootDir, getHash(shard.dest), path.extname(shard.dest))) : shard);
+    .map(shard => shard.name);
 
-  const rootShards = [shardRepository.getShard("main")]
-    .concat(dynamicShards)
-    .map(shard => ({
-      shard: shard,
-      loadOrder: buildShardLoadOrder(shardRepository, shard.name)
+  const rootShards = dynamicShards
+    .concat("main")
+    .map(shardName => ({
+      name: shardName,
+      loadOrder: buildShardLoadOrder(shardRepository, shardName)
     }));
 
   // Move things around in the shard tree based on load order.
-  rootShards.forEach(rootShard => normalizeCommonModules(shardRepository, rootShard.loadOrder, shardTree.stats));
+  normalizeCommonModules(shardRepository, buildShardLoadOrder(shardRepository, dynamicShards.concat("main")), shardTree.stats);
 
   // Rebuild the context with the shards.
   const updatedContext = shardRepository
@@ -56,7 +59,8 @@ function splitContext(bundler, context, splitters) {
 }
 
 function buildShardLoader(shardInfo, shardRepository) {
-  const dest = shardInfo.shard.dest && typeof shardInfo.shard.dest === "string" ? shardInfo.shard.dest : null;
+  const shard = shardRepository.getShard(shardInfo.name);
+  const dest = shard.dest && typeof shard.dest === "string" ? shard.dest : null;
 
   if (!dest) {
     return;
@@ -83,11 +87,7 @@ function buildShardLoadOrder(shardRepository, shardNames) {
   var shardName, children;
 
   for (var shardIndex = 0; shardList.length > shardIndex; shardIndex++) {
-    children = [shardList[shardIndex]].reduce((accumulator, parent) => {
-      const shard = shardRepository.getShard(parent);
-      return shard.dynamic ? accumulator : accumulator.concat(shard.children);
-    }, []);
-
+    children = [shardList[shardIndex]].reduce((accumulator, parent) => accumulator.concat(shardRepository.getShard(parent).children), []);
     shardList = shardList.concat(children);
   }
 
@@ -130,11 +130,20 @@ function getDirname(filepath) {
   return filepath && typeof filepath === "string" ? path.dirname(filepath) : null;
 }
 
-function getHash(input) {
-  return crypto
-    .createHash("sha256")
-    .update(input.toString())
-    .digest("hex");
+function buildShardRepository(shardTree) {
+  // Setup the shard repository to make it easier to make changes to the shards.
+  return Object
+    .keys(shardTree.nodes)
+    .map(shardName => shardTree.nodes[shardName])
+    .reduce((repository, shard) => (repository.setShard(shard), repository), createShardRepository());
+}
+
+function configureDest(shard, rootDir) {
+  return (
+    shard.dynamic && shard.implicit ?
+      shard.configure({
+        dest: path.join(rootDir, shard.dest)
+      }) : shard);
 }
 
 function createBundlerSplitter(options) {

@@ -1,4 +1,6 @@
 const Shard = require("./shard");
+const getHash = require("../hash");
+const path = require("path");
 
 module.exports = function nodeBuilder(moduleCache, splitters) {
   var moduleStats = {};
@@ -65,7 +67,7 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
           currentModule.deps
             .filter(dep => dep.dynamic)
             .forEach(dep => {
-              splitPoints[dep.id] = new Shard({ name: dep.id, dynamic: true, entries: [dep.id], implicit: true });
+              splitPoints[configureName(dep.id)] = new Shard({ name: configureName(dep.id), dynamic: true, entries: [dep.id], implicit: true });
             });
         }
       }
@@ -82,3 +84,7 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
     getStats: () => moduleStats
   };
 };
+
+function configureName(name) {
+  return getHash(name) + path.extname(name);
+}
