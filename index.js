@@ -7,6 +7,18 @@ const Shard = require("./src/shard/shard");
 const path = require("path");
 const loaderJS = require("fs").readFileSync(path.join(__dirname, "loader.js"));
 
+//
+// Ugh - I wish we had actual support for macros in JS. Anyways,
+// this flag for an experimental/temporary switch to generate
+// a separate common bundle instead of stuffing common modules
+// in the best suitable bundle. Separate bundle create an extra
+// request to load... But it's a bit cleaner of a mental model.
+// Stuffing modules in the best suitable bundle removes the extra
+// bundle that needs to be loaded, but it isn't obviously clear
+// which bundle a common module will end in.
+//
+const createCommonBundle = false;
+
 function createSplitter(options) {
   return new Splitter(options);
 }
@@ -24,7 +36,7 @@ function splitContext(bundler, context, splitters) {
   const shardRepository = buildShardRepository(shardTree);
 
   // Implicit dynamic bundles dont have a valid dest since the split
-  // occurs because of dynamically loaded module rather than a split
+  // occurs because of a dynamically loaded module rather than a split
   // rule in which you specify a destination.
   shardRepository
     .getAllShards()
@@ -44,8 +56,11 @@ function splitContext(bundler, context, splitters) {
     }));
 
   // Move common modules around into the "common" bundle.
-  //shardRepository.setShard({ name: "common", dest: path.join(rootDir, "common.js") });
-  //rootShards.find(shard => shard.name === "main").loadOrder.unshift("common");
+  if (createCommonBundle) {
+    shardRepository.setShard({ name: "common", dest: path.join(rootDir, "common.js") });
+    rootShards.find(shard => shard.name === "main").loadOrder.unshift("common");
+  }
+
   normalizeCommonModules(shardRepository, buildShardLoadOrder(shardRepository, dynamicShards.concat("main")), shardTree.stats);
 
   // Rebuild the context with the shards.
@@ -64,7 +79,7 @@ function buildShardLoader(shardInfo, shardRepository) {
   const shard = shardRepository.getShard(shardInfo.name);
   const dest = shard.dest && typeof shard.dest === "string" ? shard.dest : null;
 
-  if (!dest) {
+  if (!dest || !shard.modules.length) {
     return;
   }
 
@@ -114,20 +129,23 @@ function normalizeCommonModules(shardRepository, shardOrderedList, moduleStats) 
       var shards = shardOrderedList.filter(shardId => moduleStats[moduleId].shards[shardId]);
       var owner = shards.find(shardName => shardRepository.getShard(shardName).entries.indexOf(moduleId) !== -1);
 
-      // If the module is NOT an entry module, then we will store it in the first bundle
-      if (!owner) {
-        if (shards.every((shardName) => shardRepository.getShard(shardName).dynamic)) {
+      if (createCommonBundle) {
+        // Move common modules around into the "common" bundle.
+        if (!owner) {
           commonModules.push(moduleId);
         }
-        else {
-          owner = shards[0];
+      }
+      else {
+        // If the module is NOT an entry module, then we will store it in the first bundle
+        if (!owner) {
+          if (shards.every((shardName) => shardRepository.getShard(shardName).dynamic)) {
+            commonModules.push(moduleId);
+          }
+          else {
+            owner = shards[0];
+          }
         }
       }
-
-      // Move common modules around into the "common" bundle.
-      // if (!owner) {
-      //   commonModules.push(moduleId);
-      // }
 
       shards
         .filter(shardName => owner !== shardName)
@@ -139,8 +157,12 @@ function normalizeCommonModules(shardRepository, shardOrderedList, moduleStats) 
 
   if (commonModules.length) {
     // Move common modules around into the "common" bundle.
-    //shardRepository.setShard(shardRepository.getShard("common").setModules(commonModules));
-    shardRepository.setShard(shardRepository.getShard("main").addModules(commonModules));
+    if (createCommonBundle) {
+      shardRepository.setShard(shardRepository.getShard("common").setModules(commonModules));
+    }
+    else {
+      shardRepository.setShard(shardRepository.getShard("main").addModules(commonModules));
+    }
   }
 }
 
