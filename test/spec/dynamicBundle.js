@@ -32,12 +32,12 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.shards).to.have.property("loader-main.js");
       });
 
-      it("then result has a bundle for the dynamic module called '1e466af.js'", function () {
-        expect(result.shards).to.have.property("1e466af.js");
+      it("then result has a bundle for the dynamic module called '3e5a64d.js'", function () {
+        expect(result.shards).to.have.property("3e5a64d.js");
       });
 
-      it("then the result bundle loader for the dynamic bundle '1e466af'", function () {
-        expect(result.shards).to.have.property("loader-1e466af.js");
+      it("then the result bundle loader for the dynamic bundle '3e5a64d'", function () {
+        expect(result.shards).to.have.property("loader-3e5a64d.js");
       });
 
       it("then the main bundle has 4 modules", function () {
@@ -60,12 +60,12 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.getModules(result.shards["main"].modules[3])).to.deep.include({ filename: "moriarty.js" });
       });
 
-      it("then the dynamic bundle '1e466af' has 1 module", function () {
-        expect(result.getModules(result.shards["1e466af.js"].modules)).to.have.lengthOf(1);
+      it("then the dynamic bundle '3e5a64d' has 1 module", function () {
+        expect(result.getModules(result.shards["3e5a64d.js"].modules)).to.have.lengthOf(1);
       });
 
-      it("then the dynamic bundle '1e466af' has the module 'world.js'", function () {
-        expect(result.getModules(result.shards["1e466af.js"].modules[0])).to.deep.include({ filename: "world.js" });
+      it("then the dynamic bundle '3e5a64d' has the module 'world.js'", function () {
+        expect(result.getModules(result.shards["3e5a64d.js"].modules[0])).to.deep.include({ filename: "world.js" });
       });
     });
 
@@ -104,12 +104,12 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.shards).to.have.property("loader-main.js");
       });
 
-      it("then result has a bundle for the dynamic module called '1e466af.js'", function () {
-        expect(result.shards).to.have.property("1e466af.js");
+      it("then result has a bundle for the dynamic module called '3e5a64d.js'", function () {
+        expect(result.shards).to.have.property("3e5a64d.js");
       });
 
-      it("then the result bundle loader for the dynamic bundle '1e466af'", function () {
-        expect(result.shards).to.have.property("loader-1e466af.js");
+      it("then the result bundle loader for the dynamic bundle '3e5a64d'", function () {
+        expect(result.shards).to.have.property("loader-3e5a64d.js");
       });
 
       it("then the main bundle has 2 modules", function () {
@@ -136,12 +136,12 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.getModules(result.shards["splita"].modules[1])).to.deep.include({ filename: "moriarty.js" });
       });
 
-      it("then the dynamic bundle '1e466af' has 1 module", function () {
-        expect(result.getModules(result.shards["1e466af.js"].modules)).to.have.lengthOf(1);
+      it("then the dynamic bundle '3e5a64d' has 1 module", function () {
+        expect(result.getModules(result.shards["3e5a64d.js"].modules)).to.have.lengthOf(1);
       });
 
-      it("then the dynamic bundle '1e466af' has the module 'world.js'", function () {
-        expect(result.getModules(result.shards["1e466af.js"].modules[0])).to.deep.include({ filename: "world.js" });
+      it("then the dynamic bundle '3e5a64d' has the module 'world.js'", function () {
+        expect(result.getModules(result.shards["3e5a64d.js"].modules[0])).to.deep.include({ filename: "world.js" });
       });
     });
 
@@ -184,12 +184,12 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.shards).to.have.property("loader-main.js");
       });
 
-      it("then result has a bundle for the dynamic module called '1e466af.js'", function () {
-        expect(result.shards).to.have.property("1e466af.js");
+      it("then result has a bundle for the dynamic module called '3e5a64d.js'", function () {
+        expect(result.shards).to.have.property("3e5a64d.js");
       });
 
-      it("then the result bundle loader for the dynamic bundle '1e466af'", function () {
-        expect(result.shards).to.have.property("loader-1e466af.js");
+      it("then the result bundle loader for the dynamic bundle '3e5a64d'", function () {
+        expect(result.shards).to.have.property("loader-3e5a64d.js");
       });
 
       it("then the main bundle has 3 modules", function () {
@@ -216,12 +216,12 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.getModules(result.shards["splita"].modules[0])).to.deep.include({ filename: "splita.js" });
       });
 
-      it("then the dynamic bundle '1e466af' has 1 module", function () {
-        expect(result.getModules(result.shards["1e466af.js"].modules)).to.have.lengthOf(1);
+      it("then the dynamic bundle '3e5a64d' has 1 module", function () {
+        expect(result.getModules(result.shards["3e5a64d.js"].modules)).to.have.lengthOf(1);
       });
 
-      it("then the dynamic bundle '1e466af' has the module 'world.js'", function () {
-        expect(result.getModules(result.shards["1e466af.js"].modules[0])).to.deep.include({ filename: "world.js" });
+      it("then the dynamic bundle '3e5a64d' has the module 'world.js'", function () {
+        expect(result.getModules(result.shards["3e5a64d.js"].modules[0])).to.deep.include({ filename: "world.js" });
       });
     });
 

@@ -1,6 +1,7 @@
 const Shard = require("./shard");
 const getHash = require("../hash");
 const path = require("path");
+const cwd = process.cwd();
 
 module.exports = function nodeBuilder(moduleCache, splitters) {
   var moduleStats = {};
@@ -76,7 +77,8 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
           currentModule.deps
             .filter(dep => dep.dynamic)
             .forEach(dep => {
-              splitPoints[configureName(dep.id)] = new Shard({ name: configureName(dep.id), dynamic: true, entries: [dep.id], implicit: true });
+              const name = dep.path ? configureName(dep.path) : getHash(dep.id);
+              splitPoints[name] = new Shard({ name: name, dynamic: true, entries: [dep.id], implicit: true });
             });
 
           // If a splitPoint is found it means that the currentNode is the split point.
@@ -100,6 +102,6 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
   };
 };
 
-function configureName(name) {
-  return getHash(name) + path.extname(name);
+function configureName(filepath) {
+  return getHash(filepath.replace(cwd, "")) + path.extname(filepath);
 }
