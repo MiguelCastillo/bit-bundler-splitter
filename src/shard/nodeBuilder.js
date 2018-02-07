@@ -56,8 +56,16 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
             splitPoints[splitPoint.name] = new Shard(splitPoint);
           }
 
-          currentNode = currentNode.addChildren(splitPoint.name);
-          splitPoints[splitPoint.name] = splitPoints[splitPoint.name].addEntries(currentModule.id).addParents(currentNode.name);
+          // Make sure to only build a hierarchy if the split point is not dynamic.
+          // The reason is that a dynamic split point does not get loaded as a
+          // dependency of a bundle, and hierarchies are essentially to build the
+          // loading order of bundles.
+          if (!splitPoint.dynamic) {
+            currentNode = currentNode.addChildren(splitPoint.name);
+            splitPoints[splitPoint.name] = splitPoints[splitPoint.name].addParents(currentNode.name);
+          }
+
+          splitPoints[splitPoint.name] = splitPoints[splitPoint.name].addEntries(currentModule.id);
           moduleList[moduleIndex] = null;
         }
         else {
