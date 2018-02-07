@@ -25,6 +25,7 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
     var currentNode = node;
     var moduleIndex = 0, moduleList = node.entries.slice(0);
     var currentModule;
+    var entries = [];
     var splitPoints = {};
     var splitPoint;
 
@@ -69,12 +70,18 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
             .forEach(dep => {
               splitPoints[configureName(dep.id)] = new Shard({ name: configureName(dep.id), dynamic: true, entries: [dep.id], implicit: true });
             });
+
+          // If a splitPoint is found it means that the currentNode is the split point.
+          // So add the module as an entry.
+          if (splitPoint) {
+            entries.push(currentModule.id);
+          }
         }
       }
     }
 
     return {
-      node: currentNode.addModules(moduleList.filter(Boolean)),
+      node: currentNode.addModules(moduleList.filter(Boolean)).addEntries(entries),
       splitPoints: splitPoints
     };
   }

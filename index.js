@@ -43,7 +43,9 @@ function splitContext(bundler, context, splitters) {
       loadOrder: buildShardLoadOrder(shardRepository, shardName)
     }));
 
-  // Move things around in the shard tree based on load order.
+  // Move common modules around into the "common" bundle.
+  //shardRepository.setShard({ name: "common", dest: path.join(rootDir, "common.js") });
+  //rootShards.find(shard => shard.name === "main").loadOrder.unshift("common");
   normalizeCommonModules(shardRepository, buildShardLoadOrder(shardRepository, dynamicShards.concat("main")), shardTree.stats);
 
   // Rebuild the context with the shards.
@@ -103,27 +105,43 @@ function buildShardLoadOrder(shardRepository, shardNames) {
 }
 
 function normalizeCommonModules(shardRepository, shardOrderedList, moduleStats) {
+  var commonModules = [];
+
   Object
     .keys(moduleStats)
     .filter(moduleId => Object.keys(moduleStats[moduleId].shards).length > 1)
     .forEach(moduleId => {
       var shards = shardOrderedList.filter(shardId => moduleStats[moduleId].shards[shardId]);
-      var entry = shards.find(shardId => shardRepository.getShard(shardId).entries.indexOf(moduleId) !== -1);
+      var owner = shards.find(shardName => shardRepository.getShard(shardName).entries.indexOf(moduleId) !== -1);
 
-      // If the module is NOT an entry module, then we will store in the first
-      // shard in the rotation so that the module gets loaded early in the
-      // dependency tree.
-      if (entry === undefined) {
-        shards.shift();
+      // If the module is NOT an entry module, then we will store it in the first bundle
+      if (!owner) {
+        if (shards.every((shardName) => shardRepository.getShard(shardName).dynamic)) {
+          commonModules.push(moduleId);
+        }
+        else {
+          owner = shards[0];
+        }
       }
 
+      // Move common modules around into the "common" bundle.
+      // if (!owner) {
+      //   commonModules.push(moduleId);
+      // }
+
       shards
-        .filter(shardId => entry !== shardId)
-        .forEach(shardId => {
-          const shard = shardRepository.getShard(shardId);
+        .filter(shardName => owner !== shardName)
+        .forEach(shardName => {
+          const shard = shardRepository.getShard(shardName);
           shardRepository.setShard(shard.setModules(shard.modules.filter(id => id !== moduleId)));
         });
     });
+
+  if (commonModules.length) {
+    // Move common modules around into the "common" bundle.
+    //shardRepository.setShard(shardRepository.getShard("common").setModules(commonModules));
+    shardRepository.setShard(shardRepository.getShard("main").addModules(commonModules));
+  }
 }
 
 function getDirname(filepath) {
