@@ -24,13 +24,41 @@ class Shard {
   }
 
   merge(shard) {
-    return this
-      .addEntries(shard.entries)
-      .addModules(shard.modules)
-      .addParents(shard.parents)
-      .addChildren(shard.children)
-      .setDest(shard.dest)
-      .setDynamic(shard.dynamic);
+    if (shard === this) {
+      return this;
+    }
+
+    var result = this;
+
+    if (shard.hasOwnProperty("entries")) {
+      result = result.addEntries(shard.entries);
+    }
+
+    if (shard.hasOwnProperty("modules")) {
+      result = result.addModules(shard.modules);
+    }
+
+    if (shard.hasOwnProperty("parents")) {
+      result = result.addParents(shard.parents);
+    }
+
+    if (shard.hasOwnProperty("children")) {
+      result = result.addChildren(shard.children);
+    }
+
+    if (shard.hasOwnProperty("dest")) {
+      result = result.setDest(shard.dest);
+    }
+
+    if (shard.hasOwnProperty("name")) {
+      result = result.setName(shard.name);
+    }
+
+    if (shard.hasOwnProperty("dynamic")) {
+      result = result.setDynamic(shard.dynamic);
+    }
+
+    return result;
   }
 
   configure(options) {
