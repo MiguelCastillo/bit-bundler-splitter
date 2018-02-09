@@ -1,7 +1,7 @@
 import Bitbundler from "bit-bundler";
 import loggers from "bit-bundler/loggers";
 import { expect } from "chai";
-import bundleSplitter from "../../index";
+import bundleSplitter from "../../src/index";
 
 describe("Dynamic bundle Test Suite", function () {
   const createBundler = (config) => new Bitbundler(Object.assign({ log: { stream: loggers.through() } }, config || {}));

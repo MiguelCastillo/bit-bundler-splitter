@@ -3,7 +3,7 @@
 import { expect } from "chai";
 import BitBundler from "bit-bundler";
 import loggers from "bit-bundler/loggers";
-import bundleSplitter from "../../index";
+import bundleSplitter from "../../src/index";
 
 describe("BitBundler test suite", function () {
   const createBundler = (config) => new BitBundler(Object.assign({ log: { stream: loggers.through() } }, config || {}));

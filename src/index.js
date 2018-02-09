@@ -1,11 +1,11 @@
 "use strict";
 
-const createShardTreeBuilder = require("./src/shard/treeBuilder");
-const createShardRepository = require("./src/shard/repository");
-const Splitter = require("./src/splitter");
-const Shard = require("./src/shard/shard");
+const createShardTreeBuilder = require("./shard/treeBuilder");
+const createShardRepository = require("./shard/repository");
+const Splitter = require("./splitter");
+const Shard = require("./shard/shard");
 const path = require("path");
-const loaderJS = require("fs").readFileSync(path.join(__dirname, "loader.js"));
+const loaderJS = require("fs").readFileSync(path.join(__dirname, "../loader.js"));
 
 //
 // Ugh - I wish we had actual support for macros in JS. Anyways,
