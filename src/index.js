@@ -104,7 +104,16 @@ function buildShardLoadOrder(shardRepository, shardNames) {
   var shardName, children;
 
   for (var shardIndex = 0; shardList.length > shardIndex; shardIndex++) {
-    children = [shardList[shardIndex]].reduce((accumulator, parent) => accumulator.concat(shardRepository.getShard(parent).children), []);
+    children = [shardList[shardIndex]]
+      .reduce((accumulator, parent) => {
+        const t = shardRepository
+          .getShard(shardRepository.getShard(parent).children)
+          .filter(child => !child.dynamic)
+          .map(child => child.name);
+
+        return accumulator.concat(t);
+      }, []);
+
     shardList = shardList.concat(children);
   }
 
