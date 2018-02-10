@@ -7,7 +7,8 @@ const defaults = {
   modules: [],
   parents: [],
   children: [],
-  implicit: false
+  implicit: false,
+  dynamic: false
 };
 
 class Shard {
@@ -28,37 +29,37 @@ class Shard {
       return this;
     }
 
-    var result = this;
+    var result = {};
 
     if (shard.hasOwnProperty("entries")) {
-      result = result.addEntries(shard.entries);
+      result.entries = dedup(this.entries.concat(shard.entries));
     }
 
     if (shard.hasOwnProperty("modules")) {
-      result = result.addModules(shard.modules);
+      result.modules = dedup(this.modules.concat(shard.modules));
     }
 
     if (shard.hasOwnProperty("parents")) {
-      result = result.addParents(shard.parents);
+      result.parents = dedup(this.parents.concat(shard.parents));
     }
 
     if (shard.hasOwnProperty("children")) {
-      result = result.addChildren(shard.children);
-    }
-
-    if (shard.hasOwnProperty("dest")) {
-      result = result.setDest(shard.dest);
+      result.children = dedup(this.children.concat(shard.children));
     }
 
     if (shard.hasOwnProperty("name")) {
-      result = result.setName(shard.name);
+      result.name = shard.name;
+    }
+
+    if (shard.hasOwnProperty("dest")) {
+      result.dest = shard.dest;
     }
 
     if (shard.hasOwnProperty("dynamic")) {
-      result = result.setDynamic(shard.dynamic);
+      result.dynamic = shard.dynamic;
     }
 
-    return result;
+    return this.configure(result);
   }
 
   configure(options) {
