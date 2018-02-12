@@ -43,36 +43,28 @@ function splitContext(bundler, context, splitters) {
     .filter(shard => shard.dynamic && shard.implicit)
     .forEach(shard => shardRepository.setShard(configureDest(shard, rootDir)));
 
-  const dynamicShards = shardRepository
+  const rootShards = shardRepository
     .getAllShards()
     .filter(shard => shard.dynamic)
-    .map(shard => shard.name);
-
-  const rootShards = dynamicShards
-    .concat("main")
-    .map(shardName => ({
-      name: shardName,
-      loadOrder: buildShardLoadOrder(shardRepository, shardName)
+    .concat(shardRepository.getShard("main"))
+    .map(shard => ({
+      name: shard.name,
+      shards: {},
+      loadOrder: buildShardLoadOrder(shard.name, shardRepository)
     }));
 
-  // Move common modules around into the "common" bundle.
-  if (createCommonBundle) {
-    shardRepository.setShard({ name: "common", dest: path.join(rootDir, "common.js") });
-    rootShards.find(shard => shard.name === "main").loadOrder.unshift("common");
-  }
+  normalizeCommonModules(createCommonBundle ? "common-main" : "main", rootShards.map(shard => shard.name), shardRepository, shardTree.stats);
 
-  normalizeCommonModules(shardRepository, buildShardLoadOrder(shardRepository, dynamicShards.concat("main")), shardTree.stats);
-
-  // Rebuild the context with the shards.
-  const updatedContext = shardRepository
+  // Rebuild the context with the current shards.
+  var updatedContext = shardRepository
     .getAllShards()
     .filter(shard => shard.modules.length)
     .reduce((context, shard) => context.setBundle(shard.toBundle()), context);
 
   return rootShards
-    .map(rootShard => buildShardLoader(rootShard, shardRepository))
+    .map(shard => buildShardLoader(shard, shardRepository))
     .filter(Boolean)
-    .reduce((context, loader) => context.setBundle(loader), updatedContext);
+    .reduce((context, shard) => context.setBundle(shard), updatedContext);
 }
 
 function buildShardLoader(shardInfo, shardRepository) {
@@ -99,80 +91,76 @@ function buildShardLoader(shardInfo, shardRepository) {
   };
 }
 
-function buildShardLoadOrder(shardRepository, shardNames) {
-  var visited = {}, shardDependencyOrder = [], shardList = [].concat(shardNames);
-  var shardName, children;
+function buildShardLoadOrder(shardNames, shardRepository) {
+  var visited = {}, loadOrder = [], shardList = [].concat(shardNames);
+  var parent, shard, shardName;
 
   for (var shardIndex = 0; shardList.length > shardIndex; shardIndex++) {
-    children = [shardList[shardIndex]]
-      .reduce((accumulator, parent) => {
-        const t = shardRepository
-          .getShard(shardRepository.getShard(parent).children)
-          .filter(child => !child.dynamic)
-          .map(child => child.name);
-
-        return accumulator.concat(t);
-      }, []);
-
-    shardList = shardList.concat(children);
+    parent = shardList[shardIndex];
+    shard = shardRepository.getShard(shardRepository.getShard(parent).children);
+    shardList = shardList.concat(shard.filter(child => !child.dynamic).map(child => child.name));
   }
 
   for (var index = shardList.length; index; index--) {
     shardName = shardList[index - 1];
     if (!visited[shardName]) {
       visited[shardName] = true;
-      shardDependencyOrder.push(shardName);
+      loadOrder.push(shardName);
     }
   }
 
-  return shardDependencyOrder;
+  return loadOrder;
 }
 
-function normalizeCommonModules(shardRepository, shardOrderedList, moduleStats) {
-  var commonModules = [];
+function normalizeCommonModules(targetShardName, sourceShardNames, shardRepository, moduleStats) {
+  const shardLoadOrder = buildShardLoadOrder(sourceShardNames, shardRepository);
+  const commonShardInfo = buildCommonShard(shardLoadOrder, shardRepository, moduleStats);
+
+  shardRepository.setShard(shardRepository.getShard(targetShardName).addModules(commonShardInfo.commonModules));
+
+  Object
+    .keys(commonShardInfo.shardMap)
+    .forEach(shardName => {
+      const shard = shardRepository.getShard(shardName);
+      const modules = shard.modules.filter(moduleId => !commonShardInfo.shardMap[shardName].modules[moduleId]);
+      shardRepository.setShard(shard.setModules(modules));
+    });
+}
+
+function buildCommonShard(shardNames, shardRepository, moduleStats) {
+  var result = {
+    commonModules: [],
+    shardMap: {}
+  };
 
   Object
     .keys(moduleStats)
     .filter(moduleId => Object.keys(moduleStats[moduleId].shards).length > 1)
     .forEach(moduleId => {
-      var shards = shardOrderedList.filter(shardId => moduleStats[moduleId].shards[shardId]);
-      var owner = shards.find(shardName => shardRepository.getShard(shardName).entries.indexOf(moduleId) !== -1);
+      const shardsWithDuplicates = shardNames.filter(shardName => moduleStats[moduleId].shards[shardName]);
+      var owner = shardsWithDuplicates.find(shardName => shardRepository.getShard(shardName).entries.indexOf(moduleId) !== -1);
 
-      if (createCommonBundle) {
-        // Move common modules around into the "common" bundle.
-        if (!owner) {
-          commonModules.push(moduleId);
+      if (!owner) {
+        if (createCommonBundle || shardsWithDuplicates.every((shardName) => shardRepository.getShard(shardName).dynamic)) {
+          result.commonModules.push(moduleId);
         }
-      }
-      else {
-        // If the module is NOT an entry module, then we will store it in the first bundle
-        if (!owner) {
-          if (shards.every((shardName) => shardRepository.getShard(shardName).dynamic)) {
-            commonModules.push(moduleId);
-          }
-          else {
-            owner = shards[0];
-          }
+        else {
+          owner = shardsWithDuplicates[0];
         }
       }
 
-      shards
+      shardsWithDuplicates
         .filter(shardName => owner !== shardName)
         .forEach(shardName => {
-          const shard = shardRepository.getShard(shardName);
-          shardRepository.setShard(shard.setModules(shard.modules.filter(id => id !== moduleId)));
+          if (!result.shardMap[shardName]) {
+            result.shardMap[shardName] = { modules: {} };
+          }
+
+          result.shardMap[shardName].modules[moduleId] = true;
         });
     });
 
-  if (commonModules.length) {
-    // Move common modules around into the "common" bundle.
-    if (createCommonBundle) {
-      shardRepository.setShard(shardRepository.getShard("common").setModules(commonModules));
-    }
-    else {
-      shardRepository.setShard(shardRepository.getShard("main").addModules(commonModules));
-    }
-  }
+  return result;
 }
 
 function getDirname(filepath) {
