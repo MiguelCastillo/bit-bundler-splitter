@@ -13,7 +13,7 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
       return {
         name: splitter.name,
         dest: splitter.dest,
-        dynamic: splitter.dynamic
+        dynamic: !!splitter.dynamic
       };
     }
   }
@@ -57,8 +57,8 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
             splitPoints[splitPoint.name] = new Shard(splitPoint);
           }
 
-          currentNode = currentNode.addChildren(splitPoint.name);
           splitPoints[splitPoint.name] = splitPoints[splitPoint.name].merge({ parents: currentNode.name, entries: currentModule.id });
+          currentNode = currentNode.addChildren(splitPoint.name);
           moduleList[moduleIndex] = null;
         }
         else {
@@ -68,9 +68,19 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
           // iterate through the dynamic deps and create shards for dynamic loading
           currentModule.deps
             .filter(dep => dep.dynamic)
+            .map(dep => moduleCache[dep.id])
             .forEach(dep => {
-              const name = dep.path ? configureName(dep.path) : getHash(dep.id);
-              splitPoints[name] = new Shard({ name: name, dynamic: true, entries: [dep.id], implicit: true });
+              const splitPoint = (
+                buildSplitPoint(dep, moduleStats[dep.id]) ||
+                { name: configureName(dep), dynamic: true, implicit: true }
+              );
+
+              if (!splitPoints[splitPoint.name]) {
+                splitPoints[splitPoint.name] = new Shard(splitPoint);
+              }
+
+              splitPoints[splitPoint.name] = splitPoints[splitPoint.name].merge({ parents: currentNode.name, entries: dep.id, references: currentModule.id });
+              currentNode = currentNode.addChildren(splitPoint.name);
             });
 
           // If a splitPoint is found it means that the currentNode is the split point.
@@ -94,6 +104,6 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
   };
 };
 
-function configureName(filepath) {
-  return getHash(filepath.replace(cwd, "")) + path.extname(filepath);
+function configureName(dep) {
+  return dep.path ? getHash(dep.path.replace(cwd, "")) + path.extname(dep.path) : getHash(dep.id);
 }

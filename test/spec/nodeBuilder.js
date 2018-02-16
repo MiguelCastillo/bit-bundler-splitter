@@ -298,8 +298,8 @@ describe("Test suite for node builder", function () {
         expect(nodeResult.splitPoints["1-splitter"].entries).to.include("3-module");
       });
 
-      it("then shard '1-splitter' has dynamic set to be true", function () {
-        expect(nodeResult.splitPoints["1-splitter"].dynamic).to.be.undefined;
+      it("then shard '1-splitter' has dynamic set to be false", function () {
+        expect(nodeResult.splitPoints["1-splitter"].dynamic).to.be.false;
       });
 
       it("then shard '1-splitter' has implicit set to be false", function () {
@@ -373,28 +373,28 @@ describe("Test suite for node builder", function () {
         expect(Object.keys(nodeResult.splitPoints)).to.have.lengthOf(1);
       });
 
-      it("then a shard has name 'b4c7ebe'", function () {
-        expect(nodeResult.splitPoints).to.have.property("b4c7ebe");
+      it("then a shard has name '1-splitter'", function () {
+        expect(nodeResult.splitPoints).to.have.property("1-splitter");
       });
 
-      it("then shard 'b4c7ebe' has 1 entry", function () {
-        expect(nodeResult.splitPoints["b4c7ebe"].entries).to.have.lengthOf(1);
+      it("then shard '1-splitter' has 1 entry", function () {
+        expect(nodeResult.splitPoints["1-splitter"].entries).to.have.lengthOf(1);
       });
 
-      it("then shard 'b4c7ebe' has an entry of '2-module'", function () {
-        expect(nodeResult.splitPoints["b4c7ebe"].entries).to.include("2-module");
+      it("then shard '1-splitter' has an entry of '2-module'", function () {
+        expect(nodeResult.splitPoints["1-splitter"].entries).to.include("2-module");
       });
 
-      it("then shard 'b4c7ebe' has NO modules", function () {
-        expect(nodeResult.splitPoints["b4c7ebe"].modules).to.have.lengthOf(0);
+      it("then shard '1-splitter' has NO modules", function () {
+        expect(nodeResult.splitPoints["1-splitter"].modules).to.have.lengthOf(0);
       });
 
-      it("then shard 'b4c7ebe' has dynamic set to be true", function () {
-        expect(nodeResult.splitPoints["b4c7ebe"].dynamic).to.be.true;
+      it("then shard '1-splitter' has dynamic set to be false", function () {
+        expect(nodeResult.splitPoints["1-splitter"].dynamic).to.be.false;
       });
 
-      it("then shard 'b4c7ebe' has implicit set to be true", function () {
-        expect(nodeResult.splitPoints["b4c7ebe"].implicit).to.be.true;
+      it("then shard '1-splitter' has implicit set to be false", function () {
+        expect(nodeResult.splitPoints["1-splitter"].implicit).to.be.false;
       });
     });
   });

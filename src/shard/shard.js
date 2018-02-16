@@ -5,10 +5,12 @@ const defaults = {
   dest: "",
   entries: [],
   modules: [],
+  references: [],
   parents: [],
   children: [],
   implicit: false,
-  dynamic: false
+  dynamic: false,
+  content: null
 };
 
 class Shard {
@@ -39,6 +41,10 @@ class Shard {
       result.modules = dedup(this.modules.concat(shard.modules));
     }
 
+    if (shard.hasOwnProperty("references")) {
+      result.references = dedup(this.references.concat(shard.references));
+    }
+
     if (shard.hasOwnProperty("parents")) {
       result.parents = dedup(this.parents.concat(shard.parents));
     }
@@ -53,6 +59,10 @@ class Shard {
 
     if (shard.hasOwnProperty("dest")) {
       result.dest = shard.dest;
+    }
+
+    if (shard.hasOwnProperty("content")) {
+      result.content = shard.content;
     }
 
     if (shard.hasOwnProperty("dynamic")) {
@@ -106,6 +116,10 @@ class Shard {
     return this.configure({ dest: dest });
   }
 
+  setContent(content) {
+    return this.configure({ content: content });
+  }
+
   setDynamic(dynamic) {
     return this.configure({ dynamic: dynamic });
   }
@@ -114,7 +128,8 @@ class Shard {
     return {
       name: this.name,
       modules: this.modules,
-      dest: this.dest
+      dest: this.dest,
+      content: this.content
     };
   }
 }
