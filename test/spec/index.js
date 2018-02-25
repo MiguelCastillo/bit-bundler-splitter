@@ -110,8 +110,8 @@ describe("BitBundler test suite", function () {
         expect(result.shards).to.have.property("test/dist/basic/deep/Z.js");
       });
 
-      it("then the 'vendor' bundle has 27 modules", function () {
-        expect(result.shards["test/dist/basic/deep/vendor.js"].modules).to.have.lengthOf(27);
+      it("then the 'vendor' bundle has 26 modules", function () {
+        expect(result.shards["test/dist/basic/deep/vendor.js"].modules).to.have.lengthOf(26);
       });
     });
   });

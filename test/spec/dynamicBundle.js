@@ -20,8 +20,8 @@ describe("Dynamic bundle Test Suite", function () {
           .then(r => result = r);
       });
 
-      it("then result has 5 bundles", function () {
-        expect(Object.keys(result.shards)).to.have.lengthOf(5);
+      it("then result has 3 bundles", function () {
+        expect(Object.keys(result.shards)).to.have.lengthOf(3);
       });
 
       it("then result has a bundle 'main'", function () {
@@ -32,20 +32,12 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.shards).to.have.property("loader-main.js");
       });
 
-      it("then result has a dynamic bundle loader for bundle 'main'", function () {
-        expect(result.shards).to.have.property("dynamic-main.js");
-      });
-
       it("then result has a bundle for the dynamic module '3e5a64d.js'", function () {
         expect(result.shards).to.have.property("3e5a64d.js");
       });
 
-      it("then the result has a bundle loader for the dynamic bundle '3e5a64d'", function () {
-        expect(result.shards).to.have.property("loader-3e5a64d.js");
-      });
-
-      it("then the 'main' bundle has 4 modules", function () {
-        expect(result.getModules(result.shards["main"].modules)).to.have.lengthOf(4);
+      it("then the 'main' bundle has 6 modules", function () {
+        expect(result.getModules(result.shards["main"].modules)).to.have.lengthOf(6);
       });
 
       it("then the 'main' bundle has the module 'index.js'", function () {
@@ -62,6 +54,14 @@ describe("Dynamic bundle Test Suite", function () {
 
       it("then the 'main' bundle has the module 'moriarty.js'", function () {
         expect(result.getModules(result.shards["main"].modules[3])).to.deep.include({ filename: "moriarty.js" });
+      });
+
+      it("then the 'main' bundle has the module with id 'd9ab0c2' for loading `world`", function () {
+        expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "d9ab0c2" });
+      });
+
+      it("then the 'main' bundle has the module with id '$splitter$dl'", function () {
+        expect(result.getModules(result.shards["main"].modules[5])).to.deep.include({ id: "$splitter$dl" });
       });
 
       it("then the dynamic bundle '3e5a64d' has 1 module", function () {
@@ -92,8 +92,8 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result).to.be.ok;
       });
 
-      it("then the result has 6 bundles", function () {
-        expect(Object.keys(result.shards)).to.have.lengthOf(6);
+      it("then the result has 4 bundles", function () {
+        expect(Object.keys(result.shards)).to.have.lengthOf(4);
       });
 
       it("then result has a bundle 'main'", function () {
@@ -108,20 +108,12 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.shards).to.have.property("loader-main.js");
       });
 
-      it("then the result has a dynamic bundle loader for bundle 'main'", function () {
-        expect(result.shards).to.have.property("loader-main.js");
-      });
-
       it("then result has a bundle for the dynamic module '3e5a64d.js'", function () {
         expect(result.shards).to.have.property("3e5a64d.js");
       });
 
-      it("then the result has bundle loader for the dynamic bundle '3e5a64d.js'", function () {
-        expect(result.shards).to.have.property("loader-3e5a64d.js");
-      });
-
-      it("then the 'main' bundle has 2 modules", function () {
-        expect(result.getModules(result.shards["main"].modules)).to.have.lengthOf(2);
+      it("then the 'main' bundle has 4 modules", function () {
+        expect(result.getModules(result.shards["main"].modules)).to.have.lengthOf(4);
       });
 
       it("then the 'main' bundle has the module 'index.js'", function () {
@@ -130,6 +122,14 @@ describe("Dynamic bundle Test Suite", function () {
 
       it("then the 'main' bundle has the module 'hello.js'", function () {
         expect(result.getModules(result.shards["main"].modules[1])).to.deep.include({ filename: "hello.js" });
+      });
+
+      it("then the 'main' bundle has the module with id 'd9ab0c2' for loading `world`", function () {
+        expect(result.getModules(result.shards["main"].modules[2])).to.deep.include({ id: "d9ab0c2" });
+      });
+
+      it("then the 'main' bundle has the module with id '$splitter$dl'", function () {
+        expect(result.getModules(result.shards["main"].modules[3])).to.deep.include({ id: "$splitter$dl" });
       });
 
       it("then the 'splita' bundle has 2 modules", function () {
@@ -172,8 +172,8 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result).to.be.ok;
       });
 
-      it("then the result has 7 bundles", function () {
-        expect(Object.keys(result.shards)).to.have.lengthOf(7);
+      it("then the result has 4 bundles", function () {
+        expect(Object.keys(result.shards)).to.have.lengthOf(4);
       });
 
       it("then result has a bundle 'main'", function () {
@@ -184,28 +184,16 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.shards).to.have.property("splita");
       });
 
-      it("then the result has a bundle 'loader-splita.js'", function () {
-        expect(result.shards).to.have.property("loader-splita.js");
-      });
-
       it("then the result has a bundle loader for 'main' bundle", function () {
         expect(result.shards).to.have.property("loader-main.js");
-      });
-
-      it("then the result has a bundle dynamic loader for 'main' bundle", function () {
-        expect(result.shards).to.have.property("dynamic-main.js");
       });
 
       it("then result has a bundle for the dynamic module called '3e5a64d.js'", function () {
         expect(result.shards).to.have.property("3e5a64d.js");
       });
 
-      it("then the result bundle loader for the dynamic bundle '3e5a64d.js'", function () {
-        expect(result.shards).to.have.property("loader-3e5a64d.js");
-      });
-
-      it("then the 'main' bundle has 3 modules", function () {
-        expect(result.getModules(result.shards["main"].modules)).to.have.lengthOf(3);
+      it("then the 'main' bundle has 6 modules", function () {
+        expect(result.getModules(result.shards["main"].modules)).to.have.lengthOf(6);
       });
 
       it("then the 'main' bundle has the module 'index.js'", function () {
@@ -218,6 +206,18 @@ describe("Dynamic bundle Test Suite", function () {
 
       it("then the 'main' bundle has the module 'moriarty.js'", function () {
         expect(result.getModules(result.shards["main"].modules[2])).to.deep.include({ filename: "moriarty.js" });
+      });
+
+      it("then the 'main' bundle has the module with id 'd9ab0c2' for loading `world`", function () {
+        expect(result.getModules(result.shards["main"].modules[3])).to.deep.include({ id: "d9ab0c2" });
+      });
+
+      it("then the 'main' bundle has the module with id 'f35b467' for loading `splita`", function () {
+        expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "f35b467" });
+      });
+
+      it("then the 'main' bundle has the module with id '$splitter$dl' for loading dynamic bundles", function () {
+        expect(result.getModules(result.shards["main"].modules[5])).to.deep.include({ id: "$splitter$dl" });
       });
 
       it("then the 'splita' bundle has 1 modules", function () {
@@ -256,32 +256,24 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result).to.be.ok;
       });
 
-      it("then the result has 5 bundles", function () {
-        expect(Object.keys(result.shards)).to.have.lengthOf(5);
+      it("then the result has 3 bundles", function () {
+        expect(Object.keys(result.shards)).to.have.lengthOf(3);
       });
 
       it("then result has bundle 'main'", function () {
         expect(result.shards).to.have.property("main");
       });
 
-      it("then the result has bundle 'split-world'", function () {
-        expect(result.shards).to.have.property("split-world");
-      });
-
-      it("then the result has bundle 'loader-world.js'", function () {
-        expect(result.shards).to.have.property("loader-world.js");
-      });
-
       it("then the result has a bundle loader for bundle 'main'", function () {
         expect(result.shards).to.have.property("loader-main.js");
       });
 
-      it("then the result has a dynamic bundle loader for bundle 'main'", function () {
-        expect(result.shards).to.have.property("dynamic-main.js");
+      it("then result has bundle 'split-world'", function () {
+        expect(result.shards).to.have.property("split-world");
       });
 
-      it("then the 'main' bundle has 4 modules", function () {
-        expect(result.getModules(result.shards["main"].modules)).to.have.lengthOf(4);
+      it("then the 'main' bundle has 6 modules", function () {
+        expect(result.getModules(result.shards["main"].modules)).to.have.lengthOf(6);
       });
 
       it("then the 'main' bundle has the module 'index.js'", function () {
@@ -298,6 +290,14 @@ describe("Dynamic bundle Test Suite", function () {
 
       it("then the 'main' bundle has the module 'moriarty.js'", function () {
         expect(result.getModules(result.shards["main"].modules[3])).to.deep.include({ filename: "moriarty.js" });
+      });
+
+      it("then the 'main' bundle has the module with id 'd9ab0c2' for loading `world`", function () {
+        expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "d9ab0c2" });
+      });
+
+      it("then the 'main' bundle has the module with id '$splitter$dl'", function () {
+        expect(result.getModules(result.shards["main"].modules[5])).to.deep.include({ id: "$splitter$dl" });
       });
 
       it("then the 'split-world' bundle has 1 modules", function () {

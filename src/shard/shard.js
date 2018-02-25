@@ -4,6 +4,7 @@ const defaults = {
   name: "",
   dest: "",
   entries: [],
+  isMain: false,
   modules: [],
   references: [],
   parents: [],
@@ -23,6 +24,10 @@ class Shard {
 
     if (!dest && name) {
       this.dest = dest !== false && looksLikeFileName(name) ? name : false;
+    }
+
+    if (options.hasOwnProperty("isMain")) {
+      this.isMain = options.isMain;
     }
   }
 
@@ -67,6 +72,10 @@ class Shard {
 
     if (shard.hasOwnProperty("dynamic")) {
       result.dynamic = shard.dynamic;
+    }
+
+    if (shard.hasOwnProperty("isMain")) {
+      result.isMain = shard.isMain;
     }
 
     return this.configure(result);
@@ -128,6 +137,7 @@ class Shard {
     return {
       name: this.name,
       modules: this.modules,
+      entries: this.isMain || this.dynamic === true ? this.entries : [],
       dest: this.dest,
       content: this.content
     };
