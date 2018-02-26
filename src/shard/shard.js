@@ -11,7 +11,7 @@ const defaults = {
   children: [],
   loadOrder: [],
   implicit: false,
-  dynamic: false,
+  isDynamic: false,
   content: null
 };
 
@@ -75,8 +75,8 @@ class Shard {
       result.content = shard.content;
     }
 
-    if (shard.hasOwnProperty("dynamic")) {
-      result.dynamic = shard.dynamic;
+    if (shard.hasOwnProperty("isDynamic")) {
+      result.isDynamic = shard.isDynamic;
     }
 
     if (shard.hasOwnProperty("isMain")) {
@@ -135,14 +135,14 @@ class Shard {
   }
 
   setDynamic(dynamic) {
-    return this.configure({ dynamic: dynamic });
+    return this.configure({ isDynamic: dynamic });
   }
 
   toBundle() {
     return {
       name: this.name,
       modules: this.modules,
-      entries: this.isMain || this.dynamic === true ? this.entries : [],
+      entries: this.isMain || this.isDynamic === true ? this.entries : [],
       dest: this.dest,
       content: this.content
     };

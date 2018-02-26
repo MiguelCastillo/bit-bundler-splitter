@@ -66,7 +66,7 @@ function splitContext(bundler, context, splitters) {
     .reduce((ctx, modules) => ctx.setCache(modules.reduce((acc, mod) => (acc[mod.id] = mod, acc), ctx.getCache())), context);
 
   rootShards
-    .filter(shard => !shard.dynamic)
+    .filter(shard => !shard.isDynamic)
     .map(shard => buildStaticShardLoader(shard, shardRepository))
     .filter(Boolean)
     .forEach(shard => shardRepository.setShard(shard));
@@ -161,7 +161,7 @@ function buildShardLoadOrder(shardNames, shardRepository) {
   for (var shardIndex = 0; shardList.length > shardIndex; shardIndex++) {
     parent = shardList[shardIndex];
     shard = shardRepository.getShard(shardRepository.getShard(parent).children);
-    shardList = shardList.concat(shard.filter(child => !child.dynamic).map(child => child.name));
+    shardList = shardList.concat(shard.filter(child => !child.isDynamic).map(child => child.name));
   }
 
   for (var index = shardList.length; index; index--) {
@@ -189,7 +189,7 @@ function buildCommonShard(shardNames, shardRepository, moduleStats) {
       var owner = shardsWithDuplicates.find(shardName => shardRepository.getShard(shardName).entries.indexOf(moduleId) !== -1);
 
       if (!owner) {
-        if (createCommonBundle || shardsWithDuplicates.every((shardName) => shardRepository.getShard(shardName).dynamic)) {
+        if (createCommonBundle || shardsWithDuplicates.every((shardName) => shardRepository.getShard(shardName).isDynamic)) {
           result.commonModules.push(moduleId);
         }
         else {
@@ -218,8 +218,8 @@ function getDynamicShards(shardNames, shardRepository) {
   for (var shardIndex = 0; shardList.length > shardIndex; shardIndex++) {
     parent = shardList[shardIndex];
     children = shardRepository.getShard(shardRepository.getShard(parent).children);
-    shardList = shardList.concat(children.filter(child => !child.dynamic).map(child => child.name));
-    dynamicShards = dynamicShards.concat(children.filter(child => child.dynamic));
+    shardList = shardList.concat(children.filter(child => !child.isDynamic).map(child => child.name));
+    dynamicShards = dynamicShards.concat(children.filter(child => child.isDynamic));
   }
 
   return dynamicShards;
@@ -233,7 +233,7 @@ function updateDynamicShardDest(shard, rootDir) {
   // Implicit dynamic bundles dont have a valid dest since the split
   // occurs because of a dynamically loaded module rather than a split
   // rule in which you specify a destination.
-  return shard.dynamic && shard.implicit ? shard.setDest(path.join(rootDir, shard.dest)) : shard;
+  return shard.isDynamic && shard.implicit ? shard.setDest(path.join(rootDir, shard.dest)) : shard;
 }
 
 function buildShardRepository(shardTree, mainBundle) {
@@ -248,7 +248,7 @@ function buildShardRepository(shardTree, mainBundle) {
 function buildRootShards(shardRepository, mainBundle) {
   const rootShards = shardRepository
     .getAllShards()
-    .filter(shard => shard.dynamic)
+    .filter(shard => shard.isDynamic)
     .concat(shardRepository.getShard(mainBundle.name))
     .map(shard => shard.merge({ loadOrder: buildShardLoadOrder(shard.name, shardRepository) }));
 

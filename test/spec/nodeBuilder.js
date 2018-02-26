@@ -194,7 +194,7 @@ describe("Test suite for node builder", function () {
       });
 
       it("then the shard has 'dynamic' set to be true", function () {
-        expect(nodeResult.splitPoints["b4c7ebe"].dynamic).to.be.true;
+        expect(nodeResult.splitPoints["b4c7ebe"].isDynamic).to.be.true;
       });
 
       it("then the shard has 'implicit' set to be true", function () {
@@ -279,7 +279,7 @@ describe("Test suite for node builder", function () {
       });
 
       it("then shard 'b4c7ebe' has dynamic set to be true", function () {
-        expect(nodeResult.splitPoints["b4c7ebe"].dynamic).to.be.true;
+        expect(nodeResult.splitPoints["b4c7ebe"].isDynamic).to.be.true;
       });
 
       it("then shard 'b4c7ebe' has implicit set to be true", function () {
@@ -299,7 +299,7 @@ describe("Test suite for node builder", function () {
       });
 
       it("then shard '1-splitter' has dynamic set to be false", function () {
-        expect(nodeResult.splitPoints["1-splitter"].dynamic).to.be.false;
+        expect(nodeResult.splitPoints["1-splitter"].isDynamic).to.be.false;
       });
 
       it("then shard '1-splitter' has implicit set to be false", function () {
@@ -390,7 +390,7 @@ describe("Test suite for node builder", function () {
       });
 
       it("then shard '1-splitter' has dynamic set to be false", function () {
-        expect(nodeResult.splitPoints["1-splitter"].dynamic).to.be.false;
+        expect(nodeResult.splitPoints["1-splitter"].isDynamic).to.be.false;
       });
 
       it("then shard '1-splitter' has implicit set to be false", function () {
