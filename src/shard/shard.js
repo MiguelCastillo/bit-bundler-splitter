@@ -9,6 +9,7 @@ const defaults = {
   references: [],
   parents: [],
   children: [],
+  loadOrder: [],
   implicit: false,
   dynamic: false,
   content: null
@@ -56,6 +57,10 @@ class Shard {
 
     if (shard.hasOwnProperty("children")) {
       result.children = dedup(this.children.concat(shard.children));
+    }
+
+    if (shard.hasOwnProperty("loadOrder")) {
+      result.loadOrder = dedup(this.loadOrder.concat(shard.loadOrder));
     }
 
     if (shard.hasOwnProperty("name")) {

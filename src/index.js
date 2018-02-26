@@ -250,14 +250,9 @@ function buildRootShards(shardRepository, mainBundle) {
     .getAllShards()
     .filter(shard => shard.dynamic)
     .concat(shardRepository.getShard(mainBundle.name))
-    .map(shard => ({
-      dest: shard.dest,
-      dynamic: shard.dynamic,
-      name: shard.name,
-      shards: {},
-      loadOrder: buildShardLoadOrder(shard.name, shardRepository)
-    }));
+    .map(shard => shard.merge({ loadOrder: buildShardLoadOrder(shard.name, shardRepository) }));
 
+    /*
   rootShards
     .filter(shard => typeof shard.dest === "string")
     .forEach(shard => {
@@ -272,6 +267,7 @@ function buildRootShards(shardRepository, mainBundle) {
         shard.shards[type] = name;
       });
     });
+    */
 
   return rootShards;
 }
