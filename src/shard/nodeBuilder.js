@@ -72,7 +72,7 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
             .forEach(dep => {
               const splitPoint = (
                 buildSplitPoint(dep, moduleStats[dep.id]) ||
-                { name: configureName(dep), isDynamic: true, implicit: true }
+                { name: configureName(dep), isDynamic: true, isImplicit: true }
               );
 
               if (!splitPoints[splitPoint.name]) {

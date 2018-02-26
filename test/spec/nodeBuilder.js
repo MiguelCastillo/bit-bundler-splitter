@@ -198,7 +198,7 @@ describe("Test suite for node builder", function () {
       });
 
       it("then the shard has 'implicit' set to be true", function () {
-        expect(nodeResult.splitPoints["b4c7ebe"].implicit).to.be.true;
+        expect(nodeResult.splitPoints["b4c7ebe"].isImplicit).to.be.true;
       });
     });
   });
@@ -283,7 +283,7 @@ describe("Test suite for node builder", function () {
       });
 
       it("then shard 'b4c7ebe' has implicit set to be true", function () {
-        expect(nodeResult.splitPoints["b4c7ebe"].implicit).to.be.true;
+        expect(nodeResult.splitPoints["b4c7ebe"].isImplicit).to.be.true;
       });
 
       it("then a shard has name '1-splitter'", function () {
@@ -303,7 +303,7 @@ describe("Test suite for node builder", function () {
       });
 
       it("then shard '1-splitter' has implicit set to be false", function () {
-        expect(nodeResult.splitPoints["1-splitter"].implicit).to.be.false;
+        expect(nodeResult.splitPoints["1-splitter"].isImplicit).to.be.false;
       });
     });
 
@@ -394,7 +394,7 @@ describe("Test suite for node builder", function () {
       });
 
       it("then shard '1-splitter' has implicit set to be false", function () {
-        expect(nodeResult.splitPoints["1-splitter"].implicit).to.be.false;
+        expect(nodeResult.splitPoints["1-splitter"].isImplicit).to.be.false;
       });
     });
   });

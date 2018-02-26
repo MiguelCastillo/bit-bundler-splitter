@@ -233,7 +233,7 @@ function updateDynamicShardDest(shard, rootDir) {
   // Implicit dynamic bundles dont have a valid dest since the split
   // occurs because of a dynamically loaded module rather than a split
   // rule in which you specify a destination.
-  return shard.isDynamic && shard.implicit ? shard.merge({ dest: path.join(rootDir, shard.dest) }) : shard;
+  return shard.isDynamic && shard.isImplicit ? shard.merge({ dest: path.join(rootDir, shard.dest) }) : shard;
 }
 
 function configureLoadOrder(shard, shardRepository) {

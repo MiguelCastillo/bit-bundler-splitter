@@ -4,13 +4,13 @@ const defaults = {
   name: "",
   dest: "",
   entries: [],
-  isMain: false,
   modules: [],
   references: [],
   parents: [],
   children: [],
   loadOrder: [],
-  implicit: false,
+  isMain: false,
+  isImplicit: false,
   isDynamic: false,
   content: null
 };
@@ -81,6 +81,10 @@ class Shard {
 
     if (shard.hasOwnProperty("isMain")) {
       result.isMain = shard.isMain;
+    }
+
+    if (shard.hasOwnProperty("isImplicit")) {
+      result.isImplicit = shard.isImplicit;
     }
 
     return this.configure(result);
