@@ -43,7 +43,7 @@ function splitContext(bundler, context, splitters) {
   const mainBundle = context.getBundles("main");
   const shardTree = createShardTreeBuilder(context.getCache(), splitters).buildTree(new Shard(mainBundle));
   const shardRepository = buildShardRepository(shardTree, mainBundle);
-  const rootShards = buildRootShards(shardRepository, mainBundle);
+  const rootShards = getRootShards(shardRepository, mainBundle);
 
   //
   // Currently we stuff all common modules either in "common-main" or in "main"
@@ -233,24 +233,33 @@ function updateDynamicShardDest(shard, rootDir) {
   // Implicit dynamic bundles dont have a valid dest since the split
   // occurs because of a dynamically loaded module rather than a split
   // rule in which you specify a destination.
-  return shard.isDynamic && shard.implicit ? shard.setDest(path.join(rootDir, shard.dest)) : shard;
+  return shard.isDynamic && shard.implicit ? shard.merge({ dest: path.join(rootDir, shard.dest) }) : shard;
+}
+
+function configureLoadOrder(shard, shardRepository) {
+  return shard.isDynamic || shard.isMain ? shard.merge({ loadOrder: buildShardLoadOrder(shard.name, shardRepository) }) : shard;
 }
 
 function buildShardRepository(shardTree, mainBundle) {
+  const shardRepository = Object
+    .keys(shardTree.nodes)
+    .map(shardName => shardTree.nodes[shardName])
+    .reduce((repository, shard) => (repository.setShard(shard), repository), createShardRepository());
+
   const rootDir = getDirname(mainBundle.dest);
 
-  return Object
-    .keys(shardTree.nodes)
-    .map(shardName => updateDynamicShardDest(shardTree.nodes[shardName], rootDir))
-    .reduce((repository, shard) => (repository.setShard(shard), repository), createShardRepository());
+  return shardRepository
+    .getAllShards()
+    .map(shard => updateDynamicShardDest(shard, rootDir))
+    .map(shard => configureLoadOrder(shard, shardRepository))
+    .reduce((repository, shard) => (repository.setShard(shard), repository), shardRepository);
 }
 
-function buildRootShards(shardRepository, mainBundle) {
+function getRootShards(shardRepository, mainBundle) {
   const rootShards = shardRepository
     .getAllShards()
     .filter(shard => shard.isDynamic)
-    .concat(shardRepository.getShard(mainBundle.name))
-    .map(shard => shard.merge({ loadOrder: buildShardLoadOrder(shard.name, shardRepository) }));
+    .concat(shardRepository.getShard(mainBundle.name));
 
     /*
   rootShards
