@@ -10,24 +10,12 @@ const staticLoader = require("fs").readFileSync(path.join(__dirname, "/loaders/s
 const dynamicLoader = require("fs").readFileSync(path.join(__dirname, "/loaders/dynamic.js"));
 
 const dynamicBundleLoader = {
-  id: "$splitter$dl",
-  name: "$splitter$dl",
+  id: "$dl$",
+  name: "$dl$",
   source: dynamicLoader.toString(),
   deps: []
 };
 
-
-//
-// Ugh - I wish we had actual support for macros in JS. Anyways,
-// this flag for an experimental/temporary switch to generate
-// a separate common bundle instead of stuffing common modules
-// in the best suitable bundle. Separate bundle create an extra
-// request to load... But it's a bit cleaner of a mental model.
-// Stuffing modules in the best suitable bundle removes the extra
-// bundle that needs to be loaded, but it isn't obviously clear
-// which bundle a common module will end in.
-//
-const createCommonBundle = false;
 
 function createSplitter(options) {
   return new Splitter(options);
@@ -45,13 +33,7 @@ function splitContext(bundler, context, splitters) {
   const shardRepository = buildShardRepository(shardTree, mainBundle);
   const rootShards = getRootShards(shardRepository, mainBundle);
 
-  //
-  // Currently we stuff all common modules either in "common-main" or in "main"
-  // depending on whether or not we should create a separate "common" bundle.
-  // In the future the plan is to create a separate "common" bundle for dynamically
-  // loaded bundles.
-  //
-  normalizeCommonModules(createCommonBundle ? "common-main" : "main", rootShards.map(shard => shard.name), shardRepository, shardTree.stats);
+  normalizeCommonModules("main", rootShards.map(shard => shard.name), shardRepository, shardTree.stats);
 
   const dynamicShards = rootShards
     .map(shardInfo => buildDynamicShards(shardInfo, shardRepository, context))
@@ -83,11 +65,12 @@ function buildDynamicShards(shardInfo, shardRepository, context) {
     return dynamicShard.entries.reduce((acc, entry) => {
       const mod = context.getModules(entry);
       const id = getHash(mod.id);
-      const loadOrder = buildShardLoadOrder(dynamicShard.name, shardRepository)
-        .map(o => shardRepository.getShard(o))
+
+      const shardPaths = buildShardLoadOrder(dynamicShard.name, shardRepository)
+        .map(shardName => shardRepository.getShard(shardName))
         .map(shard => `"./${path.basename(dynamicShard.dest)}"`);
 
-      const updateModules = context
+      const modulesWithDynamicDeps = context
         .getModules(dynamicShard.references)
         .map(parent => parent.configure({
           deps: parent.deps.map(dep => (dep.id === mod.id ? { name: mod.name, id: id, deps: [] } : dep))
@@ -95,10 +78,10 @@ function buildDynamicShards(shardInfo, shardRepository, context) {
 
       // Here we are swapping the ID of dynamic modules with the ID of the
       // module that will load things up.
-      return acc.concat(updateModules, {
+      return acc.concat(modulesWithDynamicDeps, {
         id: id,
         name: mod.name,
-        source: `module.exports = require("${dynamicBundleLoader.id}")([${loadOrder}]).then(function() { return require("${mod.name}"); });`,
+        source: `module.exports = require("${dynamicBundleLoader.id}")([${shardPaths}]).then(function() { return require("${mod.name}"); });`,
         deps: [dynamicBundleLoader, mod]
       });
     }, accumulator);
@@ -189,7 +172,10 @@ function buildCommonShard(shardNames, shardRepository, moduleStats) {
       var owner = shardsWithDuplicates.find(shardName => shardRepository.getShard(shardName).entries.indexOf(moduleId) !== -1);
 
       if (!owner) {
-        if (createCommonBundle || shardsWithDuplicates.every((shardName) => shardRepository.getShard(shardName).isDynamic)) {
+        // TODO (miguel)
+        // Always add to the common-shard rather then sorting the most
+        // optimal module based on load position.
+        if (shardsWithDuplicates.every((shardName) => shardRepository.getShard(shardName).isDynamic)) {
           result.commonModules.push(moduleId);
         }
         else {

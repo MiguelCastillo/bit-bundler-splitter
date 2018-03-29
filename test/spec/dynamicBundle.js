@@ -60,8 +60,8 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "d9ab0c2" });
       });
 
-      it("then the 'main' bundle has the module with id '$splitter$dl'", function () {
-        expect(result.getModules(result.shards["main"].modules[5])).to.deep.include({ id: "$splitter$dl" });
+      it("then the 'main' bundle has the module with id '$dl$'", function () {
+        expect(result.getModules(result.shards["main"].modules[5])).to.deep.include({ id: "$dl$" });
       });
 
       it("then the dynamic bundle '3e5a64d' has 1 module", function () {
@@ -128,8 +128,8 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.getModules(result.shards["main"].modules[2])).to.deep.include({ id: "d9ab0c2" });
       });
 
-      it("then the 'main' bundle has the module with id '$splitter$dl'", function () {
-        expect(result.getModules(result.shards["main"].modules[3])).to.deep.include({ id: "$splitter$dl" });
+      it("then the 'main' bundle has the module with id '$dl$'", function () {
+        expect(result.getModules(result.shards["main"].modules[3])).to.deep.include({ id: "$dl$" });
       });
 
       it("then the 'splita' bundle has 2 modules", function () {
@@ -216,8 +216,8 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "f35b467" });
       });
 
-      it("then the 'main' bundle has the module with id '$splitter$dl' for loading dynamic bundles", function () {
-        expect(result.getModules(result.shards["main"].modules[5])).to.deep.include({ id: "$splitter$dl" });
+      it("then the 'main' bundle has the module with id '$dl$' for loading dynamic bundles", function () {
+        expect(result.getModules(result.shards["main"].modules[5])).to.deep.include({ id: "$dl$" });
       });
 
       it("then the 'splita' bundle has 1 modules", function () {
@@ -296,8 +296,8 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "d9ab0c2" });
       });
 
-      it("then the 'main' bundle has the module with id '$splitter$dl'", function () {
-        expect(result.getModules(result.shards["main"].modules[5])).to.deep.include({ id: "$splitter$dl" });
+      it("then the 'main' bundle has the module with id '$dl$'", function () {
+        expect(result.getModules(result.shards["main"].modules[5])).to.deep.include({ id: "$dl$" });
       });
 
       it("then the 'split-world' bundle has 1 modules", function () {
