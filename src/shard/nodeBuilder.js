@@ -18,7 +18,7 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
     }
   }
 
-  function nodesNotEqual(node1, node2) {
+  function isSplitPoint(node1, node2) {
     return node1 && node2 && node1.name !== node2.name;
   }
 
@@ -38,7 +38,7 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
       }
 
       // If module is already processed, then we just update shards
-      // keeping track of this particular modules. Make sure to exclude
+      // keeping track of this particular module. Make sure to exclude
       // dynamic modules since they go in different shards.
       if (moduleStats[currentModule.id]) {
         if (moduleStats[currentModule.id].shards[currentNode.name]) {
@@ -52,7 +52,7 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
       else {
         splitPoint = buildSplitPoint(currentModule, moduleStats[currentModule.id]);
 
-        if (nodesNotEqual(currentNode, splitPoint)) {
+        if (isSplitPoint(currentNode, splitPoint)) {
           if (!splitPoints[splitPoint.name]) {
             splitPoints[splitPoint.name] = new Shard(splitPoint);
           }
@@ -79,7 +79,12 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
                 splitPoints[splitPoint.name] = new Shard(splitPoint);
               }
 
-              splitPoints[splitPoint.name] = splitPoints[splitPoint.name].merge({ parents: currentNode.name, entries: dep.id, references: currentModule.id });
+              splitPoints[splitPoint.name] = splitPoints[splitPoint.name].merge({
+                parents: currentNode.name,
+                entries: dep.id,
+                references: currentModule.id
+              });
+
               currentNode = currentNode.addChildren(splitPoint.name);
             });
 
