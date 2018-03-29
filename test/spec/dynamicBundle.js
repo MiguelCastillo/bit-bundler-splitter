@@ -56,8 +56,8 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.getModules(result.shards["main"].modules[3])).to.deep.include({ filename: "moriarty.js" });
       });
 
-      it("then the 'main' bundle has the module with id 'd9ab0c2' for loading `world`", function () {
-        expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "d9ab0c2" });
+      it("then the 'main' bundle has the module with id '3e5a64d.js' for loading `world`", function () {
+        expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "3e5a64d.js" });
       });
 
       it("then the 'main' bundle has the module with id '$dl$'", function () {
@@ -124,8 +124,8 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.getModules(result.shards["main"].modules[1])).to.deep.include({ filename: "hello.js" });
       });
 
-      it("then the 'main' bundle has the module with id 'd9ab0c2' for loading `world`", function () {
-        expect(result.getModules(result.shards["main"].modules[2])).to.deep.include({ id: "d9ab0c2" });
+      it("then the 'main' bundle has the module with id '3e5a64d.js' for loading `world`", function () {
+        expect(result.getModules(result.shards["main"].modules[2])).to.deep.include({ id: "3e5a64d.js" });
       });
 
       it("then the 'main' bundle has the module with id '$dl$'", function () {
@@ -208,12 +208,12 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.getModules(result.shards["main"].modules[2])).to.deep.include({ filename: "moriarty.js" });
       });
 
-      it("then the 'main' bundle has the module with id 'd9ab0c2' for loading `world`", function () {
-        expect(result.getModules(result.shards["main"].modules[3])).to.deep.include({ id: "d9ab0c2" });
+      it("then the 'main' bundle has the module with id '3e5a64d.js' for loading `world`", function () {
+        expect(result.getModules(result.shards["main"].modules[3])).to.deep.include({ id: "3e5a64d.js" });
       });
 
-      it("then the 'main' bundle has the module with id 'f35b467' for loading `splita`", function () {
-        expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "f35b467" });
+      it("then the 'main' bundle has the module with id '5097a30.js' for loading `splita`", function () {
+        expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "5097a30.js" });
       });
 
       it("then the 'main' bundle has the module with id '$dl$' for loading dynamic bundles", function () {
@@ -292,8 +292,8 @@ describe("Dynamic bundle Test Suite", function () {
         expect(result.getModules(result.shards["main"].modules[3])).to.deep.include({ filename: "moriarty.js" });
       });
 
-      it("then the 'main' bundle has the module with id 'd9ab0c2' for loading `world`", function () {
-        expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "d9ab0c2" });
+      it("then the 'main' bundle has the module with id '3e5a64d.js' for loading `world`", function () {
+        expect(result.getModules(result.shards["main"].modules[4])).to.deep.include({ id: "3e5a64d.js" });
       });
 
       it("then the 'main' bundle has the module with id '$dl$'", function () {

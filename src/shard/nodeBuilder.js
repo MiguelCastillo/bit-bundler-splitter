@@ -1,7 +1,5 @@
 const Shard = require("./shard");
-const getHash = require("../hash");
-const path = require("path");
-const cwd = process.cwd();
+const moduleHash = require("../moduleHash");
 
 module.exports = function nodeBuilder(moduleCache, splitters) {
   var moduleStats = {};
@@ -72,7 +70,7 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
             .forEach(dep => {
               const splitPoint = (
                 buildSplitPoint(dep, moduleStats[dep.id]) ||
-                { name: configureName(dep), isDynamic: true, isImplicit: true }
+                { name: moduleHash(dep), isDynamic: true, isImplicit: true }
               );
 
               if (!splitPoints[splitPoint.name]) {
@@ -108,7 +106,3 @@ module.exports = function nodeBuilder(moduleCache, splitters) {
     getStats: () => moduleStats
   };
 };
-
-function configureName(dep) {
-  return dep.path ? getHash(dep.path.replace(cwd, "")) + path.extname(dep.path) : getHash(dep.id);
-}

@@ -5,7 +5,7 @@ const createShardRepository = require("./shard/repository");
 const Splitter = require("./splitter");
 const Shard = require("./shard/shard");
 const path = require("path");
-const getHash = require("./hash");
+const moduleHash = require("./moduleHash");
 const staticLoader = require("fs").readFileSync(path.join(__dirname, "/loaders/static.js"));
 const dynamicLoader = require("fs").readFileSync(path.join(__dirname, "/loaders/dynamic.js"));
 
@@ -62,29 +62,30 @@ function splitContext(bundler, context, splitters) {
 
 function buildDynamicShards(shardInfo, shardRepository, context) {
   const modules = getDynamicShards(shardInfo.name, shardRepository).reduce((accumulator, dynamicShard) => {
-    return dynamicShard.entries.reduce((acc, entry) => {
-      const mod = context.getModules(entry);
-      const id = getHash(mod.id);
+    return dynamicShard.entries
+      .map(entryModuleId => context.getModules(entryModuleId))
+      .reduce((acc, mod) => {
+        const id = moduleHash(mod);
 
-      const shardPaths = buildShardLoadOrder(dynamicShard.name, shardRepository)
-        .map(shardName => shardRepository.getShard(shardName))
-        .map(shard => `"./${path.basename(dynamicShard.dest)}"`);
+        const shardPaths = buildShardLoadOrder(dynamicShard.name, shardRepository)
+          .map(shardName => shardRepository.getShard(shardName))
+          .map(shard => `"./${path.basename(dynamicShard.dest)}"`);
 
-      const modulesWithDynamicDeps = context
-        .getModules(dynamicShard.references)
-        .map(parent => parent.configure({
-          deps: parent.deps.map(dep => (dep.id === mod.id ? { name: mod.name, id: id, deps: [] } : dep))
-        }));
+        const modulesWithDynamicDeps = context
+          .getModules(dynamicShard.references)
+          .map(parentModule => parentModule.configure({
+            deps: parentModule.deps.map(dep => (dep.id === mod.id ? { name: mod.name, id: id, deps: [] } : dep))
+          }));
 
-      // Here we are swapping the ID of dynamic modules with the ID of the
-      // module that will load things up.
-      return acc.concat(modulesWithDynamicDeps, {
-        id: id,
-        name: mod.name,
-        source: `module.exports = require("${dynamicBundleLoader.id}")([${shardPaths}]).then(function() { return require("${mod.name}"); });`,
-        deps: [dynamicBundleLoader, mod]
-      });
-    }, accumulator);
+        // Here we are swapping the ID of dynamic modules with the ID of the
+        // module that will load things up.
+        return acc.concat(modulesWithDynamicDeps, {
+          id: id,
+          name: mod.name,
+          source: `module.exports = require("${dynamicBundleLoader.id}")([${shardPaths}]).then(function() { return require("${mod.name}"); });`,
+          deps: [dynamicBundleLoader, mod]
+        });
+      }, accumulator);
   }, []);
 
   if (modules.length) {
