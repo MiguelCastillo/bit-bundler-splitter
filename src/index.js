@@ -16,7 +16,6 @@ const dynamicBundleLoader = {
   deps: []
 };
 
-
 function createSplitter(options) {
   return new Splitter(options);
 }
@@ -33,7 +32,12 @@ function splitContext(bundler, context, splitters) {
   const shardRepository = buildShardRepository(shardTree, mainBundle);
   const rootShards = getRootShards(shardRepository, mainBundle);
 
-  normalizeCommonModules("main", rootShards.map(shard => shard.name), shardRepository, shardTree.stats);
+  normalizeCommonModules(
+    shardRepository.getShard(mainBundle.name).shards["common"],
+    rootShards.map(shard => shard.name),
+    shardRepository,
+    shardTree.stats
+  );
 
   const dynamicShards = rootShards
     .map(shardInfo => buildDynamicShards(shardInfo, shardRepository, context))
@@ -170,18 +174,10 @@ function buildCommonShard(shardNames, shardRepository, moduleStats) {
     .filter(moduleId => Object.keys(moduleStats[moduleId].shards).length > 1)
     .forEach(moduleId => {
       const shardsWithDuplicates = shardNames.filter(shardName => moduleStats[moduleId].shards[shardName]);
-      var owner = shardsWithDuplicates.find(shardName => shardRepository.getShard(shardName).entries.indexOf(moduleId) !== -1);
+      const owner = shardsWithDuplicates.find(shardName => shardRepository.getShard(shardName).entries.indexOf(moduleId) !== -1);
 
       if (!owner) {
-        // TODO (miguel)
-        // Always add to the common-shard rather then sorting the most
-        // optimal module based on load position.
-        if (shardsWithDuplicates.every((shardName) => shardRepository.getShard(shardName).isDynamic)) {
-          result.commonModules.push(moduleId);
-        }
-        else {
-          owner = shardsWithDuplicates[0];
-        }
+        result.commonModules.push(moduleId);
       }
 
       shardsWithDuplicates
@@ -235,37 +231,47 @@ function buildShardRepository(shardTree, mainBundle) {
 
   const rootDir = getDirname(mainBundle.dest);
 
-  return shardRepository
+  shardRepository
     .getAllShards()
     .map(shard => updateDynamicShardDest(shard, rootDir))
     .map(shard => configureLoadOrder(shard, shardRepository))
-    .reduce((repository, shard) => (repository.setShard(shard), repository), shardRepository);
-}
+    .forEach(shard => shardRepository.setShard(shard));
 
-function getRootShards(shardRepository, mainBundle) {
-  const rootShards = shardRepository
-    .getAllShards()
-    .filter(shard => shard.isDynamic)
-    .concat(shardRepository.getShard(mainBundle.name));
-
-    /*
-  rootShards
-    .filter(shard => typeof shard.dest === "string")
+  // TODO(miguel) When we add logic for having dynamic bundles
+  // load their own common bundle then we can enable the lines
+  // below to autogen common shards for the dynamic bundles.
+  // shardRepository
+  //   .getAllShards()
+  //   .filter(shard => typeof shard.dest === "string" && shard.isDynamic)
+  //   .concat(shardRepository.getShard(mainBundle.name))
+  [shardRepository.getShard(mainBundle.name)]
     .forEach(shard => {
-      ["dynamic", "common"].forEach((type) => {
+      ["common"].forEach((type) => {
         const dest = shard.dest;
         const dirname = path.dirname(dest);
         const filename = type + "-" + path.basename(dest);
         const name = type + "-" + path.basename(dest);
 
-        shardRepository.setShard({ name: name, dest: path.join(dirname, filename) });
-        shard.loadOrder.unshift(name);
-        shard.shards[type] = name;
+        shardRepository.setShard({
+          name: name,
+          dest: path.join(dirname, filename)
+        });
+
+        shardRepository.setShard(Object.assign({}, shard, {
+          loadOrder: [name].concat(shard.loadOrder),
+          shards: Object.assign({[type]: name}, shard.shards)
+        }));
       });
     });
-    */
 
-  return rootShards;
+  return shardRepository;
+}
+
+function getRootShards(shardRepository, mainBundle) {
+  return shardRepository
+    .getAllShards()
+    .filter(shard => shard.isDynamic)
+    .concat(shardRepository.getShard(mainBundle.name));
 }
 
 function createBundlerSplitter(options) {
