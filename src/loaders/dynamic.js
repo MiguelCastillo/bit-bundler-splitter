@@ -117,7 +117,7 @@ function createLoadJS() {
     return items instanceof Array ?
       Promise.all(items.map(exec)) :
       exec(items);
-  }
+  };
 }
 
 module.exports = createLoadJS();
