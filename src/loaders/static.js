@@ -32,8 +32,10 @@ function createScript(url) {
   return script;
 }
 
+/* eslint-disable */
 function load(urls) {
   urls.forEach(function(url) {
     loadScript(head, createScript(url));
   });
 }
+/* eslint-enable */
