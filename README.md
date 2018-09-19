@@ -18,7 +18,7 @@ The bundle splitter create two extra bundles - `common` and `loader`. The `commo
 ### Install
 
 ```
-$ npm install --save-dev bit-bundler-splitter
+$ npm install --save-dev @bit/bundler-splitter
 ```
 
 
@@ -41,17 +41,17 @@ This example shows a basic `bit-bundler` setup with `bit-bundler-splitter` split
 The code is available [here](https://github.com/MiguelCastillo/bit-bundler-splitter/tree/master/examples/renderer).
 
 ``` javascript
-var Bitbundler = require("bit-bundler");
+var Bitbundler = require("@bit/bundler");
 
 Bitbundler.bundle({
   src: "src/main.js",
   dest: "dist/main.js"
 }, {
   loader: [
-    "bit-loader-babel"
+    "@bit/loader-babel"
   ],
   bundler: [
-    ["bit-bundler-splitter", [
+    ["@bit/bundler-splitter", [
       { name: "vendor", dest: "dest/vendor.js", match: ["/bower_components/", "/node_modules/"] },
       { name: "renderer", dest: "dest/renderer.js", match: "/src/renderer/" } ]
     ]
