@@ -83,14 +83,19 @@ function buildShardRepository(shardTree) {
   [shardRepository.getMainShard()]
     .forEach(shard => {
       ["common"].forEach((type) => {
-        const dest = shard.dest;
-        const dirname = path.dirname(dest);
-        const filename = type + "-" + path.basename(dest);
-        const name = type + "-" + path.basename(dest);
+        let dest = shard.dest;
+        let name = type;
+
+        if (dest) {
+          const dirname = path.dirname(dest);
+          const filename = type + "-" + path.basename(dest);
+          name = type + "-" + path.basename(dest);
+          dest = path.join(dirname, filename);
+        }
 
         shardRepository.setShard({
-          name: name,
-          dest: path.join(dirname, filename)
+          name,
+          dest, 
         });
 
         shardRepository.setShard(Object.assign({}, shard, {
